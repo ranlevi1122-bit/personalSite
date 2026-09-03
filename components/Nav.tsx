@@ -72,11 +72,11 @@ export function Nav({
                 name still contains the visible "Ran Levi" text (WCAG 2.5.3). */}
             <span
               aria-hidden="true"
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-white/12 bg-white/[0.04] font-display text-[11px] font-semibold tracking-tight text-chalk transition-colors duration-300 group-hover:border-accent/50"
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-white/12 bg-white/[0.04] font-display text-[13px] font-semibold tracking-tight text-chalk transition-colors duration-300 group-hover:border-accent/50"
             >
               {person.initials}
             </span>
-            <span className="font-display text-[14px] font-semibold tracking-[-0.015em] text-chalk">
+            <span className="font-display text-[18px] font-semibold tracking-[-0.015em] text-chalk">
               {person.name}
             </span>
             <span className="sr-only">— home</span>
