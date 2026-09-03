@@ -46,7 +46,7 @@ export function Hero() {
           {/* ---------------------------------------------------------------- */}
           <div className="relative z-10 max-w-[660px]">
             <div className="enter mb-8" style={at(0.02)}>
-              <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-white/10 grayscale filter transition-all duration-500 hover:border-accent hover:grayscale-0 md:h-32 md:w-32">
+              <div className="relative h-32 w-32 overflow-hidden rounded-full border-2 border-white/10 grayscale filter transition-all duration-500 hover:border-accent hover:grayscale-0 md:h-40 md:w-40">
                 <Image
                   src="/profile.png"
                   alt="Ran Levi"
@@ -63,7 +63,7 @@ export function Hero() {
               <span className="label label-accent">{positioning.eyebrow}</span>
             </div>
 
-            <h1 className="mt-7 font-display text-[clamp(4.4rem,7.4vw,5.75rem)] font-semibold leading-[1.0] tracking-[-0.035em] text-chalk">
+            <h1 className="mt-7 font-display text-[clamp(2.4rem,5.4vw,3.75rem)] font-semibold leading-[1.0] tracking-[-0.035em] text-chalk">
               {positioning.headlineLines.map((line, i) => (
                 <HeadlineReveal key={line} text={line} delay={0.1 + i * 0.1} className="block" />
               ))}
