@@ -1,0 +1,455 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========================================================================== */
+/*  Tokens                                                                    */
+/* ========================================================================== */
+
+:root {
+  --bg: #07080b;
+  --panel: #0d1016;
+  --panel-2: #12151d;
+  --line: rgba(255, 255, 255, 0.075);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --chalk: #f4f6fa;
+  --muted: #949daf;
+  /* Tuned to clear 4.5:1 against --bg, since most metadata here is small text. */
+  --faint: #7a8496;
+  --accent: #7b8cff;
+  --accent-soft: #a3afff;
+  --signal: #56d6c4;
+  --legacy: #d8a25e;
+  --nav-h: 68px;
+}
+
+/* ========================================================================== */
+/*  Base                                                                      */
+/* ========================================================================== */
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--nav-h) + 24px);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--chalk);
+    font-feature-settings: 'ss01' 1, 'cv05' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: rgba(123, 140, 255, 0.3);
+    color: #fff;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-soft);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* Firefox / fallback scrollbar treatment */
+  html {
+    scrollbar-color: #262c39 transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #232936;
+    border-radius: 999px;
+    border: 3px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #313949;
+  }
+}
+
+/* ========================================================================== */
+/*  Components                                                                */
+/* ========================================================================== */
+
+@layer components {
+  .shell {
+    width: 100%;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: 20px;
+  }
+
+  @media (min-width: 768px) {
+    .shell {
+      padding-inline: 40px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .shell {
+      padding-inline: 56px;
+    }
+  }
+
+  /* Small uppercase metadata label */
+  .label {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 10.5px;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .label-accent {
+    color: var(--accent-soft);
+  }
+
+  /* Section number + name eyebrow */
+  .section-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .hairline {
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, var(--line-strong), transparent);
+  }
+
+  /* Panels */
+  .panel {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.008));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
+
+  .panel-solid {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+  }
+
+  /* Chip / tag */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.022);
+    padding: 5px 11px;
+    font-size: 11.5px;
+    line-height: 1;
+    color: var(--muted);
+    white-space: nowrap;
+    transition: color 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .chip-active,
+  .chip:hover {
+    color: var(--chalk);
+    border-color: rgba(123, 140, 255, 0.4);
+    background: rgba(123, 140, 255, 0.1);
+  }
+
+  /* Grain + grid ambience */
+  .grid-field {
+    background-image: linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 20%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 20%, transparent 78%);
+  }
+
+  /**
+   * Inline links that would otherwise be a ~23px tap target.
+   * Grows to a comfortable 44px on touch devices without changing the
+   * visual rhythm on desktop.
+   */
+  .tap {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  @media (pointer: coarse) {
+    .tap {
+      min-height: 44px;
+    }
+
+    .chip {
+      padding-block: 11px;
+      padding-inline: 13px;
+      font-size: 12px;
+    }
+
+    .group\/head {
+      min-height: 40px;
+    }
+  }
+
+  .text-gradient {
+    background: linear-gradient(96deg, #ffffff 8%, var(--accent-soft) 58%, var(--signal) 108%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* ========================================================================== */
+/*  Utilities                                                                 */
+/* ========================================================================== */
+
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .balance {
+    text-wrap: balance;
+  }
+
+  /* Used by the sticky work section to avoid layout thrash */
+  .gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ========================================================================== */
+/*  Scroll reveals                                                            */
+/*                                                                            */
+/*  Driven by one shared IntersectionObserver (lib/revealObserver.ts) rather   */
+/*  than a motion component per element — the page uses about a hundred of     */
+/*  these, and per-element JS animation dominated mobile blocking time.        */
+/* ========================================================================== */
+
+.reveal,
+.reveal-group .reveal-item {
+  opacity: 0;
+  transition-property: opacity, transform, clip-path;
+  transition-duration: 0.75s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-rise {
+  transform: translateY(18px);
+}
+.reveal-left {
+  transform: translateX(-18px);
+}
+.reveal-scale {
+  transform: scale(0.96);
+}
+.reveal-clip {
+  transform: translateY(18px);
+  clip-path: inset(0 0 100% 0);
+}
+.reveal-fade {
+  transform: none;
+}
+
+.reveal.is-shown {
+  opacity: 1;
+  transform: none;
+  clip-path: inset(0 0 -10% 0);
+  will-change: auto;
+}
+
+/* Staggered children: each item offset by its index. */
+.reveal-group .reveal-item {
+  transform: translateY(14px);
+  transition-duration: 0.6s;
+}
+
+.reveal-group.is-shown .reveal-item {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--stagger-delay, 0s) + var(--i, 0) * var(--stagger-gap, 0.07s));
+  will-change: auto;
+}
+
+/*
+ * Never leave content hidden when the transition cannot run: no scripting,
+ * or the user has asked for reduced motion.
+ */
+@media (scripting: none) {
+  .reveal,
+  .reveal-group .reveal-item {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-group .reveal-item {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    transition: none !important;
+  }
+}
+
+/* ========================================================================== */
+/*  Hero entrance                                                             */
+/*                                                                            */
+/*  The hero is above the fold, so none of it waits for hydration: these are   */
+/*  CSS animations that begin at first paint. Doing this in JS delayed the     */
+/*  largest contentful paint until the bundle had loaded and run.              */
+/* ========================================================================== */
+
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes enter-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes word-rise {
+  from {
+    transform: translateY(106%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.enter {
+  animation: enter-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0s);
+}
+
+/*
+ * Transform-only variant for the hero's largest block of text.
+ * An element at opacity 0 is not counted as painted, so fading the biggest
+ * paragraph in pushed the largest contentful paint out by the full length of
+ * the animation. This one moves without fading and paints straight away.
+ */
+@keyframes enter-slide {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.enter-slide {
+  animation: enter-slide 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0s);
+}
+
+.enter-scale {
+  animation: enter-scale 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0s);
+}
+
+/* Per-word headline reveal, each word clipped by its own overflow box. */
+.word-clip {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.word {
+  display: inline-block;
+  animation: word-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--wd, 0s) + var(--wi, 0) * 0.04s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .enter-slide,
+  .enter-scale,
+  .word {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Signal travelling along a connector in the project visuals. */
+@keyframes slide {
+  from {
+    left: 0%;
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  to {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* ========================================================================== */
+/*  Motion preferences                                                        */
+/* ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
