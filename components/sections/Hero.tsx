@@ -46,7 +46,7 @@ export function Hero() {
           {/* ---------------------------------------------------------------- */}
           <div className="relative z-10 max-w-[660px]">
             <div className="enter mb-8" style={at(0.02)}>
-              <div className="relative h-40 w-40 overflow-hidden rounded-full border-2 border-white/10 grayscale filter transition-all duration-500 hover:border-accent hover:grayscale-0 md:h-58 md:w-58">
+              <div className="relative h-40 w-40 overflow-hidden rounded-full border-2 border-white/10 grayscale filter transition-all duration-500 hover:border-accent hover:grayscale-0 md:h-60 md:w-60">
                 <Image
                   src="/profile.png"
                   alt="Ran Levi"
