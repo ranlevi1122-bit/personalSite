@@ -14,9 +14,9 @@ import { DemoWindow, ScaledStage, usePlaying, type DemoMode } from './shared';
 
 const STEP_MS = 5200;
 
-/** Pan and zoom that bring one area of a screenshot to the middle of the frame. */
+/** Pan and a gentle zoom that bring one area of a screenshot to the middle, keeping its context. */
 function focusStyle(f: PrototypeStep['focus']): CSSProperties {
-  const s = Math.max(1, Math.min(100 / f.w, 100 / f.h) * 0.92);
+  const s = Math.max(1, Math.min(1.35, Math.min(100 / f.w, 100 / f.h) * 0.92));
   const clamp = (v: number) => Math.min(0, Math.max(100 - 100 * s, v));
   const tx = clamp(50 - s * (f.x + f.w / 2));
   const ty = clamp(50 - s * (f.y + f.h / 2));

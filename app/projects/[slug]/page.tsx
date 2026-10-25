@@ -2,11 +2,12 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { person, projects, projectBySlug, safebuildFiles, seo, type DemoKind } from '@/data/portfolioData';
+import { launchSteps, person, projects, projectBySlug, safebuildFiles, seo, type DemoKind } from '@/data/portfolioData';
 import { Reveal, Stagger, StaggerItem } from '@/components/ui/Reveal';
 import { Arrow } from '@/components/ui/Arrow';
 import { ProjectDemo } from '@/components/demos/ProjectDemo';
 import { PlanTimeline, RiskRegister, SafeBuildResults } from '@/components/demos/SafeBuild';
+import { Walkthrough } from '@/components/demos/Walkthrough';
 
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
@@ -43,7 +44,7 @@ export async function generateMetadata({
 
 /** What the visitor is looking at, said once under the live object. */
 const demoCaption: Record<DemoKind, string> = {
-  launch: 'Screens of the running system in demo mode, replaying its reference launch of a designer tap.',
+  launch: 'The system’s reference launch of one tap, replayed step by step and translated from Hebrew. Run it, open any agent, then sign off.',
   scheduler: 'A working model on invented names. The checks are modelled on the real system’s.',
   booking: 'A working model of the platform on invented names. Switch roles to see what each one can do.',
   agents: 'The four-agent workflow run on sample data. Every figure in the report is worked out from the chart.',
@@ -155,8 +156,21 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           <List items={project.solution} />
         </Block>
 
+        {project.demo === 'launch' && (
+          <Wide title="The real screens" note="The running system in its demo mode. Pick a step, or let it play.">
+            <Walkthrough
+              steps={launchSteps}
+              track="launch"
+              app="Launch Engine"
+              context="Reference launch"
+              pill="Real screens"
+              aspect="1440 / 900"
+            />
+          </Wide>
+        )}
+
         {project.gallery && (
-          <Wide title="Inside the system" note="Screens from the running system, replaying its reference launch.">
+          <Wide title="What it produced" note="The landing page from the reference launch, on a desktop and a phone, and one agent’s own page.">
             <div className="cs-gallery">
               {project.gallery.map((g) => (
                 <figure
