@@ -3,8 +3,8 @@
  * -----------------------------------------------------------------------------
  * Single source of truth for every piece of professional content on this site.
  *
- * FACTUAL RULE: everything here is derived from Ran Levi's CV, his public
- * GitHub repositories and the capstone's project book. Language and framing are sharpened, but no employer,
+ * FACTUAL RULE: everything here is derived from Ran Levi's CV, his GitHub
+ * repositories, the capstone's project book and the Launch Engine's own documentation. Language and framing are sharpened, but no employer,
  * client, metric, technology, title, date or outcome is invented.
  *
  * The live demos run on sample data with invented names; they show how each
@@ -53,13 +53,23 @@ export const portrait = {
 /* -------------------------------------------------------------------------- */
 
 export type ProjectSlug =
+  | 'launch-engine'
   | 'workforce-planning'
   | 'facility-management'
   | 'ai-data-analyst'
   | 'risk-prediction';
 
 /** The interactive objects that stand in for each project. */
-export type DemoKind = 'scheduler' | 'booking' | 'agents' | 'safebuild';
+export type DemoKind = 'launch' | 'scheduler' | 'booking' | 'agents' | 'safebuild';
+
+export interface GalleryItem {
+  src: string;
+  width: number;
+  height: number;
+  alt: string;
+  caption: string;
+  span: number;
+}
 
 export interface ProjectMetric {
   value: string;
@@ -79,6 +89,8 @@ export interface Project {
   demo: DemoKind;
   /** Who did the work, when it was not Ran alone. */
   team?: string;
+  /** Screens of the real system, shown under the story; span is in 12 columns. */
+  gallery?: GalleryItem[];
   metrics: ProjectMetric[];
   context: string;
   problem: string[];
@@ -89,6 +101,102 @@ export interface Project {
 }
 
 export const projects: Project[] = [
+  {
+    slug: 'launch-engine',
+    title: 'Launch Engine: AI landing pages for design products',
+    shortTitle: 'Launch Engine',
+    category: 'R&D project: multi-agent system with human sign-off',
+    tech: ['Claude Code', 'Next.js', 'OpenAI', 'Vercel AI SDK', 'Upstash Redis', 'n8n', 'Vercel'],
+    line: 'Eight AI agents that turn a design product’s photo and data into a checked landing page and launch kit.',
+    positioning:
+      'Turns a design product’s photo and technical data into a landing page and a full launch kit, checked claim by claim and signed off by people.',
+    demo: 'launch',
+    metrics: [
+      { value: '8', label: 'Specialist agents, each with one job and a fixed output schema' },
+      { value: '50', label: 'Products launched from one Excel upload, with no extra technical work' },
+    ],
+    context:
+      'A research and development project in how AI can write landing pages for premium design products, such as taps, baths and tiles, without inventing a single fact. Tested against the brand book of a premium bathroom and design retailer, it set out to launch one product end to end and then fifty more with no extra technical work. The first product builds the system; the next 49 go through it.',
+    problem: [
+      'One prompt cannot launch fifty products: it invents specifications, drifts off brand and leaves nothing to review.',
+      'Premium products live on accuracy; one wrong material, standard or price costs more trust than good copy earns.',
+      'Product, marketing, creative and commerce each answer for a different part, and none should have to read everything.',
+    ],
+    approach: [
+      'Wrote a master prompt as the specification: the goal, eight agents with fixed inputs and outputs, shared brand rules, a no-invention rule and human approval.',
+      'Directed Claude Code as the builder and reviewed every result like a product manager, against the brief and the people who would use it.',
+      'Ran three parallel reviews (fit to the brief, Hebrew quality, the data path) and turned the gaps into a fix list.',
+      'Fixed the system, not the output: every correction went into a prompt, a rule or a screen, so the next 49 products benefit from it.',
+      'Shipped a live version early, tested it in a demo mode that costs nothing, then on real products.',
+      'Built in two days, 24 and 25 September 2026, with an honest list of what was proven and what is still open.',
+    ],
+    solution: [
+      'Eight agents in order: product intelligence, brand guardian, audience and positioning, creative strategy, content, landing page builder, technical validator and launch QA.',
+      'Every fact carries a status: verified, inferred from the photo, pending approval or missing. Missing data is never filled in.',
+      'The price appears only on a product plate built in code from the data; the AI never writes a price, and the validator flags any that slips in.',
+      'Claims without a source trigger a revision round before a person sees the result.',
+      'Five roles sign off, each seeing exactly its part. Automated findings warn rather than block, and every override is logged.',
+      'Products come in by form, from a maker’s spec sheet, by Excel for up to 50 at once, or through n8n and an open API; the team gets an email when a launch is ready.',
+      'For each product: a landing page, copy for each reader, a sales kit, notes for architects, three posts and search texts.',
+    ],
+    outcome: [
+      'A live, password-protected system on Vercel and Upstash Redis, with a page for testing and questioning each agent on its own.',
+      'Real launches with OpenAI on a tile, a concrete bathtub and a bath product; each fault they surfaced became a fix in the system.',
+      'Three n8n flows built: a launch form, a launch from a catalogue sheet, and the engine itself.',
+      'Documented end to end: the agents, the brand rules with a source for every line, the integrations and an honest list of what is proven and what is open.',
+    ],
+    skills: [
+      'Product management',
+      'Specification writing',
+      'Multi-agent design',
+      'Human-in-the-loop design',
+      'Prompt engineering',
+      'Automation (n8n, API)',
+      'Quality control',
+    ],
+    gallery: [
+      {
+        src: '/work/launch-engine/landing-taste.jpg',
+        width: 2880,
+        height: 1640,
+        alt: 'Generated landing page section “For every taste, every space”: one tap shown in four design worlds',
+        caption: 'From the generated landing page: one product placed in four design worlds.',
+        span: 9,
+      },
+      {
+        src: '/work/launch-engine/landing-mobile.jpg',
+        width: 1170,
+        height: 2532,
+        alt: 'The generated landing page on a phone',
+        caption: 'The same page on a phone.',
+        span: 3,
+      },
+      {
+        src: '/work/launch-engine/landing-story.jpg',
+        width: 2880,
+        height: 1410,
+        alt: 'The landing page’s story section on a dark ground, beside the bronze tap',
+        caption: 'The story section, written in the brand’s language.',
+        span: 12,
+      },
+      {
+        src: '/work/launch-engine/landing-spec.jpg',
+        width: 2880,
+        height: 1760,
+        alt: 'Technical specification table where each value is marked pending approval or missing',
+        caption: 'The spec table: every value shows its status, and missing data says so.',
+        span: 6,
+      },
+      {
+        src: '/work/launch-engine/agent-page.jpg',
+        width: 2880,
+        height: 1800,
+        alt: 'The technical validator agent’s own page, with a test run and a chat',
+        caption: 'Each agent has its own page: run it on a launch, then ask it why it decided what it did.',
+        span: 6,
+      },
+    ],
+  },
   {
     slug: 'workforce-planning',
     title: 'Digital Workforce Planning System',
@@ -305,6 +413,19 @@ export interface StatusProject {
 /** Shown in turn in the hero card. Phases are taken from each case study. */
 export const statusProjects: StatusProject[] = [
   {
+    name: 'Launch Engine (R&D)',
+    status: 'Built',
+    phases: [
+      'Master prompt written as the spec',
+      'Eight agents and the brand rules built',
+      'Reviewed against the brief',
+      'Real products launched',
+      'Documented with an honest status',
+    ],
+    result: { label: 'Products per launch', before: 'One at a time', after: 'Up to 50' },
+    href: '/projects/launch-engine',
+  },
+  {
     name: 'Digital Workforce Planning System',
     status: 'Rolled out',
     phases: [
@@ -391,7 +512,7 @@ export const services: Service[] = [
     body: 'Bringing AI into the way a team already works: finding the step worth automating, wiring the right model into it, and making sure it is used.',
     points: ['Workflow automation', 'LLM and agent workflows', 'Data analysis and reporting', 'Decision support'],
     tools: ['ChatGPT', 'AutoGen Studio', 'LLMs', 'Google Sheets API'],
-    proof: { label: 'Agent workflow, raw data to report', href: '/projects/ai-data-analyst' },
+    proof: { label: 'Eight agents with human sign-off, for design products', href: '/projects/launch-engine' },
   },
   {
     title: 'AI building',
@@ -426,11 +547,65 @@ export const kpis: Kpi[] = [
 
 /** Ran's part in each project, shown on the case list. */
 export const caseRoles: Record<ProjectSlug, string> = {
+  'launch-engine': 'Product owner: wrote the spec, directed the build with Claude Code, tested and documented',
   'workforce-planning': 'Led end to end: mapping, requirements, build and rollout',
   'facility-management': 'Specified, built and rolled out',
   'ai-data-analyst': 'Designed and built the agent workflow',
   'risk-prediction': 'Team of three; I ran the final temporal validation',
 };
+
+/* -------------------------------------------------------------------------- */
+/*  Launch Engine: the real system                                            */
+/* -------------------------------------------------------------------------- */
+
+/** Screens of the running system, in demo mode, replaying its reference launch. */
+export const launchSteps: PrototypeStep[] = [
+  {
+    title: 'A product goes in',
+    body: 'A photo, the technical data and the price: typed in, read from the maker’s spec sheet, or up to 50 products from one Excel file.',
+    image: '/work/launch-engine/new-launch.jpg',
+    alt: 'The new-launch screen: product image upload, technical data and price, beside the eight agent stages',
+    width: 2880,
+    height: 1800,
+    focus: { x: 44.5, y: 8, w: 48.5, h: 92 },
+  },
+  {
+    title: 'Eight agents, one job each',
+    body: 'They run in order, each reading only what it needs and writing to a fixed schema. Here a revision round cut unsupported claims from three to none.',
+    image: '/work/launch-engine/agents.jpg',
+    alt: 'The agents’ work on one launch: eight stages complete and a revision round that cut unsupported claims from 3 to 0',
+    width: 2880,
+    height: 1800,
+    focus: { x: 73, y: 8.5, w: 20.3, h: 73 },
+  },
+  {
+    title: 'Nothing is invented',
+    body: 'The first agent splits what it knows into verified data, what the photo suggests and what is missing. Missing stays missing.',
+    image: '/work/launch-engine/agents.jpg',
+    alt: 'Product analysis in three columns: verified data, visual interpretation and missing information',
+    width: 2880,
+    height: 1800,
+    focus: { x: 9, y: 41.5, w: 61, h: 58 },
+  },
+  {
+    title: 'People sign off',
+    body: 'Five steps to launch: product, marketing, creative and commerce approve their own parts, then a final sign-off. Checks warn; people decide.',
+    image: '/work/launch-engine/review.jpg',
+    alt: 'Review and approval: five steps, four team approvals and a final sign-off',
+    width: 2880,
+    height: 1800,
+    focus: { x: 7, y: 41, w: 86, h: 52 },
+  },
+  {
+    title: 'The page it writes',
+    body: 'A full landing page in the brand’s voice, marked as an internal draft until the teams approve it.',
+    image: '/work/launch-engine/landing-hero.jpg',
+    alt: 'Generated landing page for a designer basin tap in warm bronze',
+    width: 2880,
+    height: 1800,
+    focus: { x: 11, y: 6.5, w: 78, h: 89 },
+  },
+];
 
 /* -------------------------------------------------------------------------- */
 /*  SafeBuild AI Pro: the real material                                       */

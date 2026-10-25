@@ -28,6 +28,7 @@ const CASE_SECTIONS: Record<string, string> = {
 
 /** The demos by the name their events start with. */
 const DEMO_NAMES: Record<string, string> = {
+  launch: 'Launch Engine',
   scheduler: 'Scheduler',
   booking: 'Bookings',
   agents: 'AI analyst',

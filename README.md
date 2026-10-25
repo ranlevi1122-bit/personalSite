@@ -1,7 +1,7 @@
 # Ran Levi — personal site
 
 Ran Levi's business card and portfolio: a digital project manager who also implements and builds
-AI, shown through what he delivers, the results, four case studies with live demos and how he runs
+AI, shown through what he delivers, the results, five case studies with live demos and how he runs
 a project. A private dashboard at `/stats` shows who visited and what they did.
 
 Built with Next.js 15 (App Router), React 19, TypeScript and Tailwind's base layer, with the design
@@ -26,7 +26,7 @@ the section with `data-tone` (`light`, `stone`, `dark`, `deep`).
 ## Content lives in one file
 
 Everything factual is in **`data/portfolioData.ts`**: identity and contact, the hero status card,
-the tools strip, services, results, the four case studies and Ran's role in each, the process,
+the tools strip, services, results, the five case studies and Ran's role in each, the process,
 experience, education and SEO.
 
 The CV, the GitHub repositories and the capstone's project book are the sources. No employer,
@@ -41,7 +41,7 @@ metric, technology, date or outcome is invented.
 | Services | Project management, AI implementation, AI building | `components/sections/Services.tsx` |
 | Results | Four figures the work delivered | `components/sections/Results.tsx` |
 | Try it | The scheduler, to work by hand | `components/sections/TryIt.tsx` |
-| Case studies | The four systems, each with its live demo playing | `components/sections/Cases.tsx` |
+| Case studies | The five systems, each with its live demo playing | `components/sections/Cases.tsx` |
 | Process | How a project runs, step by step | `components/sections/Process.tsx` |
 | About | Short profile, experience, education, CV | `components/sections/About.tsx` |
 | Contact | One invitation and every way to reach him | `components/sections/Contact.tsx` |
@@ -54,6 +54,10 @@ Each project is shown by a working object in `components/demos/`, not a drawn sc
 list they play by themselves while on screen (`mode="preview"`); on the case pages and in the
 home page's Try it section they are worked by hand.
 
+- **Launch Engine** (`Walkthrough.tsx`, steps in `launchSteps`): a guided tour of the real
+  system's screens, shot in its demo mode replaying the reference launch, plus a gallery of the
+  generated landing page. The screenshots are in `public/work/launch-engine/`, with the retailer's
+  logo and name removed.
 - **Scheduler** (`Scheduler.tsx`): modelled on the real company scheduler. Its checks follow the
   real system's: a full shift, a person already on it, someone not on base yet, a later arrival,
   who stood guard last night. The fairness table and the three assistant questions mirror the

@@ -6,7 +6,7 @@ import { Lines } from '@/components/ui/Lines';
 import { Arrow } from '@/components/ui/Arrow';
 
 /**
- * The four case studies, the live object and the summary side by side,
+ * The five case studies, the live object and the summary side by side,
  * alternating. Each object sweeps open as it comes into view and plays by
  * itself while it is on screen.
  */
@@ -18,8 +18,8 @@ export function Cases() {
           <Lines id="work-title" lines={['Case studies']} />
           <Reveal as="div" className="sec-head__note">
             <p>
-              Four systems, each shown working. Three replaced a process people ran by hand; the fourth is my
-              team’s capstone.
+              Five systems, each shown working: three replaced work people did by hand, one is a two-day R&amp;D
+              build, and one is my team’s capstone.
             </p>
           </Reveal>
         </div>
@@ -54,7 +54,12 @@ export function Cases() {
                     <b>My role:</b> {caseRoles[p.slug]}
                   </p>
                   <Link href={`/projects/${p.slug}`} className="arrow-link">
-                    {p.demo === 'safebuild' ? 'See the prototype and results' : 'Try it in the case study'} <Arrow />
+                    {p.demo === 'safebuild'
+                      ? 'See the prototype and results'
+                      : p.demo === 'launch'
+                        ? 'See the system at work'
+                        : 'Try it in the case study'}{' '}
+                    <Arrow />
                   </Link>
                 </div>
               </div>

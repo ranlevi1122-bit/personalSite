@@ -43,6 +43,7 @@ export async function generateMetadata({
 
 /** What the visitor is looking at, said once under the live object. */
 const demoCaption: Record<DemoKind, string> = {
+  launch: 'Screens of the running system in demo mode, replaying its reference launch of a designer tap.',
   scheduler: 'A working model on invented names. The checks are modelled on the real system’s.',
   booking: 'A working model of the platform on invented names. Switch roles to see what each one can do.',
   agents: 'The four-agent workflow run on sample data. Every figure in the report is worked out from the chart.',
@@ -153,6 +154,32 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         <Block title="What was built">
           <List items={project.solution} />
         </Block>
+
+        {project.gallery && (
+          <Wide title="Inside the system" note="Screens from the running system, replaying its reference launch.">
+            <div className="cs-gallery">
+              {project.gallery.map((g) => (
+                <figure
+                  key={g.src}
+                  className="cs-shot"
+                  style={{ ['--span' as string]: g.span }}
+                  data-portrait={g.height > g.width ? '' : undefined}
+                >
+                  <div className="cs-shot__pic">
+                    <Image
+                      src={g.src}
+                      alt={g.alt}
+                      width={g.width}
+                      height={g.height}
+                      sizes={`(max-width: 900px) 100vw, ${Math.round((g.span / 12) * 100)}vw`}
+                    />
+                  </div>
+                  <figcaption className="caption">{g.caption}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </Wide>
+        )}
 
         {capstone && (
           <>

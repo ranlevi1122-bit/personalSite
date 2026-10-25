@@ -16,7 +16,7 @@ import { TryIt } from '@/components/sections/TryIt';
  *  Services  project management, AI implementation, AI building
  *  Results   four figures that stayed in use
  *  Try it    the scheduler, to work by hand
- *  Work      the four case studies, each with its live object
+ *  Work      the five case studies, each with its live object
  *  Process   how a project runs, step by step
  *  About     the person, briefly
  *  Contact   one invitation and every way to reach him

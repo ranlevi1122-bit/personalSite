@@ -1,12 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useRef, useState } from 'react';
 import { trackDemo } from '@/lib/analytics/client';
 import { Arrow } from '@/components/ui/Arrow';
 import { useInViewOnce } from '@/lib/hooks';
 import { safebuildPlan, safebuildRisks, safebuildSteps, safebuildTargets } from '@/data/portfolioData';
-import { DemoWindow, ScaledStage, usePlaying, type DemoMode } from './shared';
+import type { DemoMode } from './shared';
+import { Walkthrough } from './Walkthrough';
 
 /**
  * SafeBuild AI Pro, the capstone, shown with its own material: the team's
@@ -14,109 +15,18 @@ import { DemoWindow, ScaledStage, usePlaying, type DemoMode } from './shared';
  * from the project book.
  */
 
-const STEP_MS = 5200;
-
-/** Pan and zoom that bring one area of a screenshot to the middle of the frame. */
-function focusStyle(f: { x: number; y: number; w: number; h: number }): CSSProperties {
-  const s = Math.max(1, Math.min(100 / f.w, 100 / f.h) * 0.92);
-  const clamp = (v: number) => Math.min(0, Math.max(100 - 100 * s, v));
-  const tx = clamp(50 - s * (f.x + f.w / 2));
-  const ty = clamp(50 - s * (f.y + f.h / 2));
-  return { transform: `translate(${tx}%, ${ty}%) scale(${s})`, ['--s' as string]: s };
-}
-
-const images = [...new Set(safebuildSteps.map((s) => s.image))];
-
+/** The team's prototype screens, as a guided tour. */
 export function SafeBuildWalkthrough({ mode = 'full' }: { mode?: DemoMode }) {
-  const preview = mode === 'preview';
-  const [index, setIndex] = useState(0);
-  const [auto, setAuto] = useState(true);
-  const { ref, playing } = usePlaying<HTMLDivElement>(true);
-  const step = safebuildSteps[index];
-
-  useEffect(() => {
-    if (!auto || !playing) return;
-    const id = window.setTimeout(() => setIndex((i) => (i + 1) % safebuildSteps.length), STEP_MS);
-    return () => window.clearTimeout(id);
-  }, [auto, playing, index]);
-
-  const go = (i: number) => {
-    setIndex(i);
-    setAuto(false);
-    trackDemo(`safebuild: walkthrough step ${i + 1}`);
-  };
-
-  const frame = (
-    <div className="sb-frame" data-ui="">
-      <div className="sb-frame__pan" style={focusStyle(step.focus)}>
-        {images.map((src) => {
-          const s = safebuildSteps.find((x) => x.image === src)!;
-          return (
-            <Image
-              key={src}
-              src={src}
-              alt={src === step.image ? step.alt : ''}
-              width={s.width}
-              height={s.height}
-              sizes={preview ? '(max-width: 900px) 100vw, 58vw' : '(max-width: 1400px) 100vw, 1360px'}
-              data-on={src === step.image ? '' : undefined}
-            />
-          );
-        })}
-        <span
-          className="sb-frame__ring"
-          aria-hidden="true"
-          style={{ left: `${step.focus.x}%`, top: `${step.focus.y}%`, width: `${step.focus.w}%`, height: `${step.focus.h}%` }}
-        />
-      </div>
-    </div>
-  );
-
-  const list = (
-    <ol className="sb-steps">
-      {safebuildSteps.map((s, i) => (
-        <li key={s.title}>
-          <button
-            type="button"
-            className="sb-step"
-            aria-current={i === index ? 'step' : undefined}
-            onClick={() => go(i)}
-            style={{ ['--run' as string]: `${STEP_MS}ms` }}
-            data-auto={auto && playing && i === index ? '' : undefined}
-          >
-            <b>{s.title}</b>
-            <span className="sb-step__body">{s.body}</span>
-            <i className="sb-step__bar" aria-hidden="true" key={`${index}-${auto}`} />
-          </button>
-        </li>
-      ))}
-    </ol>
-  );
-
-  if (preview) {
-    return (
-      <div ref={ref} inert>
-        <ScaledStage width={800} height={600}>
-          <DemoWindow app="SafeBuild AI Pro" context="Underwriting report" pill="Team prototype" className="dm--preview sb-preview">
-            {frame}
-            <div className="sb-preview__caption">
-              <span className="tnum">
-                Step {index + 1} of {safebuildSteps.length}
-              </span>
-              <b>{step.title}</b>
-              <p>{step.body}</p>
-            </div>
-          </DemoWindow>
-        </ScaledStage>
-      </div>
-    );
-  }
-
   return (
-    <div ref={ref} className="sb-walk" data-demo="">
-      {frame}
-      {list}
-    </div>
+    <Walkthrough
+      steps={safebuildSteps}
+      track="safebuild"
+      app="SafeBuild AI Pro"
+      context="Underwriting report"
+      pill="Team prototype"
+      aspect="1920 / 888"
+      mode={mode}
+    />
   );
 }
 

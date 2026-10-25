@@ -1633,6 +1633,37 @@ html,
   }
 }
 
+/* Screens of a running system: twelve columns, each picture spanning what its data says. */
+.cs-gallery {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(28px, 3vw, 44px) var(--gap);
+  align-items: start;
+}
+.cs-shot {
+  grid-column: span var(--span, 12);
+  margin: 0;
+}
+.cs-shot__pic {
+  overflow: hidden;
+  border-radius: 10px;
+  background: #fff;
+}
+.cs-shot__pic img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+@media (max-width: 900px) {
+  .cs-shot {
+    grid-column: 1 / -1;
+  }
+  .cs-shot[data-portrait] {
+    width: min(100%, 300px);
+    justify-self: center;
+  }
+}
+
 .cs-team {
   margin: 16px 0 0;
   max-width: 60ch;
@@ -2734,31 +2765,30 @@ html,
 }
 
 /* -------------------------------------------------------------------------- */
-/*  SafeBuild AI Pro: the prototype                                           */
+/*  Walkthroughs of real screens                                              */
 /* -------------------------------------------------------------------------- */
 
-.sb-walk {
+.wt {
   display: grid;
   gap: 24px;
 }
-.sb-frame {
+.wt-frame {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 1920 / 888;
   border-radius: 12px;
   background: #fff;
 }
-.sb-preview .sb-frame {
+.wt-preview .wt-frame {
   flex: none;
   border-radius: 0;
 }
-.sb-frame__pan {
+.wt-frame__pan {
   position: absolute;
   inset: 0;
   transform-origin: 0 0;
   transition: transform 1.1s var(--ease-out);
 }
-.sb-frame__pan img {
+.wt-frame__pan img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2768,10 +2798,10 @@ html,
   opacity: 0;
   transition: opacity 0.6s var(--ease-soft);
 }
-.sb-frame__pan img[data-on] {
+.wt-frame__pan img[data-on] {
   opacity: 1;
 }
-.sb-frame__ring {
+.wt-frame__ring {
   position: absolute;
   border: calc(2.5px / var(--s, 1)) solid #6e1d29;
   border-radius: calc(6px / var(--s, 1));
@@ -2780,15 +2810,15 @@ html,
   pointer-events: none;
 }
 
-.sb-steps {
+.wt-steps {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr));
   gap: 16px var(--gap);
 }
-.sb-step {
+.wt-step {
   position: relative;
   width: 100%;
   height: 100%;
@@ -2805,21 +2835,21 @@ html,
   cursor: pointer;
   transition: color 0.3s var(--ease-soft);
 }
-.sb-step:hover,
-.sb-step[aria-current='step'] {
+.wt-step:hover,
+.wt-step[aria-current='step'] {
   color: var(--fg-c);
 }
-.sb-step b {
+.wt-step b {
   font-family: var(--font-display), Georgia, serif;
   font-size: 1.25rem;
   font-weight: 500;
   line-height: 1.2;
 }
-.sb-step__body {
+.wt-step__body {
   font-size: var(--step-small);
   line-height: 1.5;
 }
-.sb-step__bar {
+.wt-step__bar {
   position: absolute;
   left: 0;
   top: -2px;
@@ -2829,38 +2859,43 @@ html,
   transform: scaleX(0);
   transform-origin: left;
 }
-.sb-step[aria-current='step'] .sb-step__bar {
+.wt-step[aria-current='step'] .wt-step__bar {
   transform: none;
 }
-.sb-step[data-auto] .sb-step__bar {
-  animation: sb-run var(--run) linear both;
+.wt-step[data-auto] .wt-step__bar {
+  animation: wt-run var(--run) linear both;
 }
-@keyframes sb-run {
+@keyframes wt-run {
   from {
     transform: scaleX(0);
   }
 }
 
-.sb-preview__caption {
+.wt-preview__caption {
   padding: 14px 18px;
 }
-.sb-preview__caption span {
+.wt-preview__caption span {
   font-size: 12px;
   color: var(--dm-muted);
 }
-.sb-preview__caption b {
+.wt-preview__caption b {
   display: block;
   margin: 4px 0;
   font-size: 18px;
   font-weight: 600;
 }
-.sb-preview__caption p {
+.wt-preview__caption p {
   margin: 0;
   color: var(--dm-muted);
 }
 
+@media (max-width: 1100px) {
+  .wt-steps {
+    grid-template-columns: repeat(min(var(--n, 4), 3), minmax(0, 1fr));
+  }
+}
 @media (max-width: 900px) {
-  .sb-steps {
+  .wt-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
