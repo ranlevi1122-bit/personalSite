@@ -1,103 +1,106 @@
 'use client';
 
 import {
-  Fragment,
   Children,
   cloneElement,
   createElement,
   isValidElement,
+  useCallback,
   useEffect,
   useRef,
   type CSSProperties,
+  type HTMLAttributes,
   type ReactNode,
+  type Ref,
 } from 'react';
 import { observeReveal } from '@/lib/revealObserver';
 
+type Tag = 'div' | 'ul' | 'ol' | 'li' | 'dl' | 'span' | 'section' | 'header' | 'article' | 'figure';
 
-type Tag = 'div' | 'ul' | 'ol' | 'li' | 'span' | 'section' | 'header' | 'article';
+/** Keeps the reveal watcher's ref and a caller's ref pointing at one node. */
+function useMergedRef<T extends HTMLElement>(outer?: Ref<T>) {
+  const inner = useRef<T | null>(null);
+  const set = useCallback(
+    (node: T | null) => {
+      inner.current = node;
+      if (typeof outer === 'function') outer(node);
+      else if (outer) (outer as { current: T | null }).current = node;
+    },
+    [outer],
+  );
+  return [inner, set] as const;
+}
 
-type RevealMode = 'rise' | 'fade' | 'clip' | 'left' | 'scale';
-
-const modeClass: Record<RevealMode, string> = {
-  rise: 'reveal-rise',
-  fade: 'reveal-fade',
-  clip: 'reveal-clip',
-  left: 'reveal-left',
-  scale: 'reveal-scale',
-};
-
-interface RevealProps {
+interface RevealProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
   children: ReactNode;
-  mode?: RevealMode;
   delay?: number;
-  duration?: number;
-  className?: string;
   as?: Tag;
+  ref?: Ref<HTMLElement>;
 }
 
 /**
- * Scroll-triggered entrance driven by a shared IntersectionObserver and a CSS
- * transition — cheap enough to use a hundred times on one page.
- *
- * `distance` is no longer a prop; the offsets live in the CSS variants so the
- * whole site moves by the same amounts.
+ * Rises into place once it scrolls into view: 24px and opacity, once.
+ * The hidden state only applies under `html.js`, so content never stays
+ * invisible if scripts fail.
  */
-export function Reveal({
-  children,
-  mode = 'rise',
-  delay = 0,
-  duration,
-  className = '',
-  as = 'div',
-}: RevealProps) {
-  const ref = useRef<HTMLElement | null>(null);
+export function Reveal({ children, delay = 0, className = '', as = 'div', style, ref, ...rest }: RevealProps) {
+  const [inner, setRef] = useMergedRef<HTMLElement>(ref);
 
-  useEffect(() => observeReveal(ref.current), []);
-
-  const style: CSSProperties = {};
-  if (delay) style.transitionDelay = `${delay}s`;
-  if (duration) style.transitionDuration = `${duration}s`;
+  useEffect(() => observeReveal(inner.current), [inner]);
 
   return createElement(
     as,
-    { ref, className: `reveal ${modeClass[mode]} ${className}`.trim(), style },
+    {
+      ...rest,
+      ref: setRef,
+      className: `reveal ${className}`.trim(),
+      style: delay ? { ...style, transitionDelay: `${delay}s` } : style,
+    },
     children,
   );
 }
 
+interface StaggerProps extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
+  children: ReactNode;
+  gap?: number;
+  delay?: number;
+  as?: Tag;
+  ref?: Ref<HTMLElement>;
+  'data-dragging'?: string;
+}
+
 /**
- * Staggered group. The container is observed once and its children pick up
- * an incremental transition-delay from their index.
+ * Staggered group: the container is watched once and each item takes its
+ * delay from its index, so the parts of a section arrive in reading order.
  */
 export function Stagger({
   children,
   className = '',
-  gap = 0.07,
+  gap = 0.075,
   delay = 0,
   as = 'div',
-}: {
-  children: ReactNode;
-  className?: string;
-  gap?: number;
-  delay?: number;
-  as?: Tag;
-}) {
-  const ref = useRef<HTMLElement | null>(null);
+  style,
+  ref,
+  ...rest
+}: StaggerProps) {
+  const [inner, setRef] = useMergedRef<HTMLElement>(ref);
 
-  useEffect(() => observeReveal(ref.current), []);
+  useEffect(() => observeReveal(inner.current), [inner]);
 
-  // Hand each child its position so the CSS can offset it.
   let i = 0;
   const indexed = Children.map(children, (child) =>
-    isValidElement<{ index?: number }>(child) ? cloneElement(child, { index: i++ }) : child,
+    isValidElement<{ index?: number }>(child) && child.props.index === undefined
+      ? cloneElement(child, { index: i++ })
+      : child,
   );
 
   return createElement(
     as,
     {
-      ref,
+      ...rest,
+      ref: setRef,
       className: `reveal-group ${className}`.trim(),
-      style: { '--stagger-gap': `${gap}s`, '--stagger-delay': `${delay}s` } as CSSProperties,
+      style: { ...style, '--stagger-gap': `${gap}s`, '--stagger-delay': `${delay}s` } as CSSProperties,
     },
     indexed,
   );
@@ -108,67 +111,21 @@ export function StaggerItem({
   className = '',
   as = 'div',
   index = 0,
+  style,
 }: {
   children: ReactNode;
   className?: string;
   as?: Tag;
-  /** Injected by <Stagger>; drives this item's transition delay. */
+  /** Injected by <Stagger> when not given; drives this item's delay. */
   index?: number;
+  style?: CSSProperties;
 }) {
   return createElement(
     as,
     {
       className: `reveal-item ${className}`.trim(),
-      style: { '--i': index } as CSSProperties,
+      style: { ...style, '--i': index } as CSSProperties,
     },
     children,
-  );
-}
-
-/**
- * Word-by-word headline reveal, each word clipped by its own overflow box.
- *
- * Pure CSS on purpose: this is the largest contentful paint on the page, and
- * animating it in JavaScript kept the headline invisible until the bundle had
- * loaded. The markup ships visible-by-default and the animation starts at
- * first paint.
- */
-export function HeadlineReveal({
-  text,
-  className = '',
-  textClassName = '',
-  delay = 0,
-  split = true,
-}: {
-  text: string;
-  /** Applied to the line wrapper. */
-  className?: string;
-  /**
-   * Applied to the element that directly contains the text. A gradient clipped
-   * to text has to live here — `background-clip: text` does not reach into
-   * descendant inline-blocks, which is exactly what each clipped word is.
-   */
-  textClassName?: string;
-  delay?: number;
-  /** false reveals the line as one unit instead of word by word. */
-  split?: boolean;
-}) {
-  const words = split ? text.split(' ') : [text];
-
-  return (
-    <span className={className} style={{ '--wd': `${delay}s` } as CSSProperties}>
-      {words.map((word, i) => (
-        <Fragment key={`${word}-${i}`}>
-          <span className="word-clip">
-            <span className={`word ${textClassName}`.trim()} style={{ '--wi': i } as CSSProperties}>
-              {word}
-            </span>
-          </span>
-          {/* The separator lives outside the clip box: a trailing space inside
-              an inline-block gets collapsed away. */}
-          {i < words.length - 1 ? ' ' : null}
-        </Fragment>
-      ))}
-    </span>
   );
 }

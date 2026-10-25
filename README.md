@@ -1,150 +1,125 @@
 # Ran Levi — personal site
 
-A high-conversion professional landing experience for **Ran Levi**: Industrial Engineering &
-Management, working at the intersection of projects, systems, data, operations and people.
+Ran Levi's business card and portfolio: a digital project manager who also implements and builds
+AI, shown through what he delivers, the results, four case studies with live demos and how he runs
+a project. A private dashboard at `/stats` shows who visited and what they did.
 
-Built with Next.js 15 (App Router), React 19, TypeScript, Tailwind CSS and Framer Motion.
-Every route is statically prerendered.
-
----
+Built with Next.js 15 (App Router), React 19, TypeScript and Tailwind's base layer, with the design
+in plain CSS (`app/globals.css`). Every public route is statically generated.
 
 ## Running it
 
 ```bash
 npm install
 npm run dev     # http://localhost:3210
-```
-
-```bash
 npm run build && npm start
 ```
 
-## Deploying
+Pushing to `main` deploys to Vercel.
 
-The whole site is static, so any host works. Netlify (already in Ran's stack):
+## The look
 
-- Build command: `npm run build`
-- Publish directory: `.next`
-- Add the official Next.js Netlify plugin, or deploy to Vercel with zero configuration.
-
-**Before going live**, set the real domain in `data/portfolioData.ts` → `seo.url`.
-It feeds the canonical tags, OpenGraph URLs, `sitemap.xml` and `robots.txt`.
-
----
+Business, with old money: an off-white page with stone and maroon bands and an oxblood footer,
+Source Serif 4 for headlines and Onest for reading. Every section is a band in one tone, named on
+the section with `data-tone` (`light`, `stone`, `dark`, `deep`).
 
 ## Content lives in one file
 
-All professional content is in **`data/portfolioData.ts`**. Nothing factual is hardcoded in a
-component. To change a project, a metric, a skill or the contact details, edit that file only.
+Everything factual is in **`data/portfolioData.ts`**: identity and contact, the hero status card,
+the tools strip, services, results, the four case studies and Ran's role in each, the process,
+experience, education and SEO.
 
-The file is organised as:
+The CV, the GitHub repositories and the capstone's project book are the sources. No employer,
+metric, technology, date or outcome is invented.
 
-| Export | What it drives |
-| --- | --- |
-| `person` | Name, email, phone, LinkedIn, resume link, languages |
-| `positioning` | Hero eyebrow, headline lines, subhead, value proposition |
-| `domains` / `domainEdges` | The five nodes of the interactive hero graph |
-| `capabilities` | Section 02 — Structure / Build / Analyze / Execute |
-| `projects` | The four case studies, including the full 7-part detail structure |
-| `impactStats` | Section 04 — verified numbers only |
-| `experience` | Afeka, Active Reserve Service, Buzzr |
-| `skillGroups` | The technology ecosystem, with `usedIn` project evidence |
-| `education` | Both qualifications and their academic themes |
-| `principles` | Operating principles (site copy, not attributed quotes) |
-| `recruiterView` | The 60-second view |
-| `askEntries` | The "Ask about Ran" answers |
-| `seo` | Titles, description, keywords, canonical URL |
+## Page order
 
-### Factual rule
+| Section | Claim | Component |
+| --- | --- | --- |
+| Hero | What Ran delivers, with a live project status card | `components/sections/Hero.tsx`, `components/StatusCard.tsx` |
+| Tools | The stack, running past | `components/sections/ToolStrip.tsx` |
+| Services | Project management, AI implementation, AI building | `components/sections/Services.tsx` |
+| Results | Four figures the work delivered | `components/sections/Results.tsx` |
+| Try it | The scheduler, to work by hand | `components/sections/TryIt.tsx` |
+| Case studies | The four systems, each with its live demo playing | `components/sections/Cases.tsx` |
+| Process | How a project runs, step by step | `components/sections/Process.tsx` |
+| About | Short profile, experience, education, CV | `components/sections/About.tsx` |
+| Contact | One invitation and every way to reach him | `components/sections/Contact.tsx` |
 
-The CV is the source of truth. No employer, client, metric, technology, date, title or outcome is
-invented anywhere in this codebase. Language and framing are sharpened; facts are not.
+Case studies: `app/projects/[slug]/page.tsx`.
 
-Two places state an explicit boundary so nothing reads as an overclaim:
+## Live demos
 
-- The risk-prediction visual is labelled *"Illustrative of the dashboard output, not reported model results."*
-- That project's outcome notes it was scoped as an MVP decision-support prototype, not a production safety system.
+Each project is shown by a working object in `components/demos/`, not a drawn screen. On the case
+list they play by themselves while on screen (`mode="preview"`); on the case pages and in the
+home page's Try it section they are worked by hand.
 
-`skillGroups` distinguishes **evidence** from **background**: a skill with `usedIn` points at real
-projects and shows a dot in the UI; a skill with only a `note` is listed as background.
+- **Scheduler** (`Scheduler.tsx`): modelled on the real company scheduler. Its checks follow the
+  real system's: a full shift, a person already on it, someone not on base yet, a later arrival,
+  who stood guard last night. The fairness table and the three assistant questions mirror the
+  real ones; the real assistant uses Gemini, the demo works its answers out from the board.
+  All names are invented; the real system's screens are not published because they show real
+  people.
+- **Bookings** (`Booking.tsx`): member, admin and viewer roles, conflict blocking, approvals,
+  weekly use. Invented names.
+- **AI analyst** (`Agents.tsx`): four agents run in turn on sample data; the chart and every
+  figure in the report are computed from the data shown.
+- **SafeBuild AI Pro** (`SafeBuild.tsx`): the team's real prototype screens in a guided
+  walkthrough, the test results (targets, the confusion matrix against a naive guess, the
+  model-selection rule), the plan from MS Project and the risk register, all from the project
+  book. The screenshots are in `public/work/safebuild/`.
 
----
+Demos report what visitors do with them through `trackDemo`; generic click tracking skips
+anything inside `data-demo`.
 
-## Structure
+## Private analytics
 
-```
-app/
-  layout.tsx              Fonts, metadata, Person JSON-LD, site chrome
-  page.tsx                Section order for the home page
-  globals.css             Design tokens, base styles, motion preferences
-  projects/[slug]/        Statically generated case studies (7-part structure)
-  opengraph-image.tsx     Social card, generated at build time
-  sitemap.ts / robots.ts  Generated from portfolioData
-components/
-  Nav.tsx                 Floating nav, active-section indicator, mobile menu
-  RecruiterMode.tsx       The 60-second view (modal dialog, focus-trapped)
-  CursorLight.tsx         Ambient cursor illumination
-  SiteChrome.tsx          Shared chrome + the recruiter-mode context
-  hero/HeroGraph.tsx      Interactive five-domain system graph
-  sections/               One file per page section
-  visuals/                A distinct visual identity per project
-  ui/                     Reveal primitives, buttons, counter, lit panels
-lib/hooks.ts              Pointer, scroll, motion-preference and focus hooks
-data/portfolioData.ts     All content
-```
+First-party and anonymous: no IP addresses, no names, no third-party scripts. Visitors who send
+Global Privacy Control or Do Not Track are not counted, and neither is any browser that has signed
+in to `/stats`.
 
-### Reading levels
+- `components/Analytics.tsx` records page views, the home sections reached (`data-section`),
+  clicks, scroll depth and time in view; `lib/analytics/client.ts` batches them to `/api/track`.
+- Events are stored in Upstash Redis, one list per day, kept 180 days (`lib/analytics/store.ts`).
+  Without Redis in development they go to `.analytics/events.jsonl`.
+- `/stats` is the dashboard, behind a password and a signed cookie (`lib/analytics/auth.ts`).
+- **Tracking links:** add `?ref=name` to the address (the dashboard builds them) and every visit
+  through that link is labelled, so you can tell which application or message it came from.
 
-The page is built for three depths, deliberately:
+It is built to cost nothing:
 
-1. **10 seconds** — hero positioning plus three verified proof points, above the fold.
-2. **60 seconds** — capabilities, the four projects, the impact numbers, or the 60-second view.
-3. **3–5 minutes** — experience, the full ecosystem, and the four case-study routes.
+- Upstash's Free plan (256MB, 500K commands a month) needs no payment method, so it cannot bill.
+  Each day keeps at most 4,000 events, roughly 100 to 200 visits; past that, the rest of the day
+  is not saved and the dashboard says so. Six months of full days stay under 200MB.
+- Vercel's Hobby plan does not bill either; if a limit were ever reached it pauses the project
+  instead. The tracker sends a visit's events in a few batched requests (every 20 seconds, at 30
+  events, and when the page is left), far inside the Hobby allowance.
+- Never add a payment method to Upstash or move the project to Vercel Pro; that is what would
+  turn on paid usage.
 
----
+Setup on Vercel, once:
 
-## Interaction and performance notes
+1. Project → Storage → create an **Upstash for Redis** database on the **Free** plan and
+   connect it to this project. Vercel adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
+2. Project → Settings → Environment Variables → add `STATS_PASSWORD` (8 characters or more).
+3. Redeploy, open `/stats` and sign in.
 
-Pointer-driven effects never re-render React. The cursor light and the hero graph each run a
-single `requestAnimationFrame` loop that writes directly to element transforms and SVG attributes;
-card lighting and the magnetic CTAs write CSS custom properties from their own event handlers.
-The hero graph commits React state only when the *highlighted* node changes.
+For local development copy `.env.example` to `.env.local` and set `STATS_PASSWORD`.
 
-Everything cursor-driven is gated behind `(hover: hover) and (pointer: fine)`, so touch devices
-never pay for effects they cannot use. `prefers-reduced-motion` collapses every entrance
-animation to a plain render, stops the graph drift and the looping visuals, and disables the
-cursor light entirely.
+## Motion
 
-### Accessibility
+Sleek and controlled, nothing tied to the cursor.
 
-- Semantic landmarks, one `h1`, ordered heading levels, skip link.
-- The recruiter overlay is a real dialog: `aria-modal`, focus moved in and restored on close,
-  Tab trapped inside, Escape to close, body scroll locked without layout shift.
-- Every hover interaction in the skills ecosystem is also reachable by keyboard focus and by tap.
-- Colour tokens are tuned to clear 4.5:1 against the background — most metadata here is small text.
-- Tap targets grow under `(pointer: coarse)`.
+- The headline lines rise from behind their baselines; the pitch, actions and byline follow.
+- The status card ticks off each delivered project's phases, then moves to the next every seven
+  seconds; it holds while pointed at, and the dots switch projects by hand.
+- The tools strip runs slowly and pauses on hover.
+- Section headings rise line by line; each section's parts rise into place once, in reading order
+  (`components/ui/Lines.tsx`, `components/ui/Reveal.tsx`, position-based in `lib/revealObserver.ts`).
+- Results count up once in view (`components/ui/CountUp.tsx`).
+- Case previews sweep open as they arrive and play only while on screen; the process line draws
+  itself and each step lights in turn.
+- Services lift on hover; buttons fill on hover; text links draw an underline.
 
-### Verified
-
-`npm run build` and `tsc --noEmit` are clean and all 12 routes prerender. Lighthouse against the
-production build:
-
-| | Performance | Accessibility | Best practices | SEO |
-| --- | --- | --- | --- | --- |
-| Home, desktop | 100 | 100 | 100 | 100 |
-| Home, mobile | 87–91 | 100 | 100 | 100 |
-| Case study, mobile | 94 | 100 | 100 | 100 |
-
-Mobile performance is a range because the numbers were sampled on a busy development machine;
-the spread is run-to-run noise, not a difference in the build. On mobile the limiting metric is
-largest contentful paint, which lands on the hero paragraph as soon as it is painted.
-
-Three findings from that work are worth keeping in mind before changing the hero:
-
-1. The hero animates in CSS, not JavaScript. Moving it back to motion components delayed the
-   largest contentful paint until the bundle had loaded and run.
-2. The hero paragraph uses `.enter-slide`, which moves without fading. An element at zero opacity
-   does not count as painted, so fading the largest text pushed LCP out by the whole animation.
-3. Scroll reveals are position-based, not `IntersectionObserver`-based. An observer only fires when
-   a threshold is crossed, so a fast flick or an anchor jump could carry an element from below the
-   viewport to above it without ever reporting it — leaving that content invisible permanently.
+Content is hidden only under `html.js`, and `prefers-reduced-motion` stops the strip, the card
+rotation, the demo previews and every travel.

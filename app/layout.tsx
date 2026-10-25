@@ -1,30 +1,21 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
+import { Onest, Source_Serif_4 } from 'next/font/google';
 import { person, seo } from '@/data/portfolioData';
 import { SiteChrome } from '@/components/SiteChrome';
 import './globals.css';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-  weight: ['400', '500', '600'],
-});
-
-// Only the weights the site actually renders — every extra face is another
-// font file on the critical path.
-const display = Space_Grotesk({
+// A sturdy serif with optical sizes for headlines, a clean grotesk for reading.
+const display = Source_Serif_4({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
-  weight: ['600'],
+  axes: ['opsz'],
 });
 
-const mono = JetBrains_Mono({
+const text = Onest({
   subsets: ['latin'],
-  variable: '--font-mono',
+  variable: '--font-text',
   display: 'swap',
-  weight: ['400'],
 });
 
 export const metadata: Metadata = {
@@ -60,48 +51,56 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#07080b',
-  colorScheme: 'dark',
+  themeColor: '#f3f2f0',
+  colorScheme: 'light',
   width: 'device-width',
   initialScale: 1,
 };
 
-/** Person structured data — helps a recruiter's search surface the right facts. */
+/** Person structured data, so a search for Ran surfaces the right facts. */
 const personJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: person.name,
   email: `mailto:${person.email}`,
   url: seo.url,
-  jobTitle: 'Technology Project Management, Information Systems Analysis & Implementation, Product Management',
+  jobTitle: 'Digital Project Manager, AI Implementer and AI Builder',
   description: seo.description,
-  sameAs: [person.linkedin],
-  knowsLanguage: person.languages.map((l) => l.name),
+  sameAs: [person.linkedin, person.github],
+  knowsLanguage: [...person.languages],
   alumniOf: [
     { '@type': 'CollegeOrUniversity', name: 'Afeka Academic College of Engineering' },
     { '@type': 'CollegeOrUniversity', name: 'Tel Aviv College of Practical Engineering' },
   ],
   knowsAbout: [
-    'Project Management',
+    'Digital project management',
     'PMO',
-    'Information Systems',
-    'Systems Analysis',
-    'Business Analysis',
-    'Requirements Analysis',
-    'Process Mapping',
-    'Workflow Automation',
-    'Product Management',
-    'Business Intelligence',
+    'Requirements analysis',
+    'Process mapping',
+    'AI implementation',
+    'Claude Code',
+    'LLM agents',
+    'AutoGen',
     'Python',
-    'SQL',
+    'Next.js',
+    'Streamlit',
     'Machine Learning',
   ],
 };
 
+/**
+ * Marks the document as scripted before first paint, so entrance animations
+ * may hide content only when something is there to reveal it again.
+ */
+const jsFlag = "document.documentElement.classList.add('js')";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${display.variable} ${mono.variable}`}>
-      <body className="bg-ink-950 font-sans antialiased">
+    <html lang="en" className={`${display.variable} ${text.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: jsFlag }} />
+      </head>
+      <body>
         <script
           type="application/ld+json"
           // Structured data is static and authored here, not user input.

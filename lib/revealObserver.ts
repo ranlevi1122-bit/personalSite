@@ -4,9 +4,8 @@
  * One shared scroll watcher for every reveal on the page.
  *
  * These used to be individual framer-motion components. On a throttled mobile
- * CPU, hydrating ~70 of them dominated total blocking time, so the generic case
- * is now a CSS transition toggled from here. framer-motion is still used where
- * it earns its keep: presence transitions and the shared-layout nav indicator.
+ * CPU, hydrating ~70 of them dominated total blocking time, so every reveal is
+ * now a CSS transition toggled from here, and the library is gone.
  *
  * Deliberately position-based rather than IntersectionObserver: an observer
  * only fires when an intersection threshold is *crossed*, so a fast flick, an

@@ -3,9 +3,12 @@
  * -----------------------------------------------------------------------------
  * Single source of truth for every piece of professional content on this site.
  *
- * FACTUAL RULE: everything here is derived from Ran Levi's CV. Language and
- * framing are sharpened for a recruiter audience, but no employer, client,
- * metric, technology, title, date or outcome is invented.
+ * FACTUAL RULE: everything here is derived from Ran Levi's CV, his public
+ * GitHub repositories and the capstone's project book. Language and framing are sharpened, but no employer,
+ * client, metric, technology, title, date or outcome is invented.
+ *
+ * The live demos run on sample data with invented names; they show how each
+ * system works, not anyone's real records.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -14,153 +17,39 @@
 
 export const person = {
   name: 'Ran Levi',
-  initials: 'RL',
-  /** Positioning line taken directly from the CV header. */
-  title: 'Technology Project Management · Information Systems Analysis & Implementation · Product Management',
-  shortTitle: 'Technology Projects, Systems & Operations',
+  title: 'Digital Project Manager · AI Implementer · AI Builder',
   email: 'ranlevi1122@gmail.com',
   phone: '052-7813019',
+  phoneHref: 'tel:+972527813019',
   linkedin: 'https://www.linkedin.com/in/ranlevi123',
   linkedinLabel: 'linkedin.com/in/ranlevi123',
+  github: 'https://github.com/ranlevi1122-bit',
+  githubLabel: 'github.com/ranlevi1122-bit',
+  siteRepo: 'https://github.com/ranlevi1122-bit/personalSite',
   resumeHref: '/Ran-Levi-CV.pdf',
   location: 'Israel',
-  languages: [
-    { name: 'Hebrew', level: 'Native' },
-    { name: 'English', level: 'Full professional proficiency' },
-  ],
+  languages: ['Hebrew', 'English'],
 } as const;
 
 export const positioning = {
-  eyebrow: 'Technology × Projects × Information Systems',
-  /** Composed as deliberate lines rather than left to wrap. */
-  headlineLines: ['I build systems', 'that turn complexity'] as const,
-  headlineAccent: 'into execution.',
-  subhead:
-    'Industrial Engineering & Management, combining project thinking, information systems, automation and data to build practical solutions for real operational problems.',
-  valueProposition: 'Turning operational complexity into digital solutions.',
-  summary:
-    '4th-year Industrial Engineering & Management student with a proven ability to build and implement technology solutions, targeting junior roles in Project Management, PMO and Product.',
+  name: 'Ran Levi',
+  /** Project management leads. */
+  roles: ['Digital project manager', 'AI implementer', 'AI builder'] as const,
+  /** The two authored lines of the hero headline. */
+  headline: ['Digital projects,', 'delivered with AI'] as const,
+  sentence:
+    'I manage digital projects from the first requirement to the day people use them, and I implement and build the AI that gets them there faster.',
+} as const;
+
+export const portrait = {
+  src: '/profile.png',
+  width: 2057,
+  height: 2261,
+  alt: 'Ran Levi, smiling, seated at a wooden table in front of a lit stone wall',
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/*  Hero graph — the five domains Ran works across                            */
-/* -------------------------------------------------------------------------- */
-
-export type DomainId = 'projects' | 'systems' | 'data' | 'operations' | 'people';
-
-export interface Domain {
-  id: DomainId;
-  label: string;
-  line: string;
-  /** Normalised layout position inside the hero graph viewBox (0–1). */
-  x: number;
-  y: number;
-  /** Projects that evidence this domain. */
-  projects: ProjectSlug[];
-}
-
-export const domains: Domain[] = [
-  {
-    id: 'projects',
-    label: 'Projects',
-    line: 'Structure the work.',
-    x: 0.5,
-    y: 0.12,
-    projects: ['workforce-planning', 'facility-management', 'risk-prediction'],
-  },
-  {
-    id: 'systems',
-    label: 'Systems',
-    line: 'Turn processes into repeatable workflows.',
-    x: 0.9,
-    y: 0.38,
-    projects: ['workforce-planning', 'facility-management'],
-  },
-  {
-    id: 'data',
-    label: 'Data',
-    line: 'Turn information into decisions.',
-    x: 0.75,
-    y: 0.83,
-    projects: ['ai-data-analyst', 'risk-prediction'],
-  },
-  {
-    id: 'operations',
-    label: 'Operations',
-    line: 'Improve how work actually happens.',
-    x: 0.25,
-    y: 0.83,
-    projects: ['workforce-planning', 'ai-data-analyst'],
-  },
-  {
-    id: 'people',
-    label: 'People',
-    line: 'Build systems people can use.',
-    x: 0.1,
-    y: 0.38,
-    projects: ['facility-management', 'workforce-planning'],
-  },
-];
-
-/** Edges of the hero graph, expressed as index pairs into `domains`. */
-export const domainEdges: [number, number][] = [
-  [0, 1],
-  [1, 2],
-  [2, 3],
-  [3, 4],
-  [4, 0],
-  [0, 2],
-  [0, 3],
-  [1, 4],
-  [1, 3],
-  [2, 4],
-];
-
-/* -------------------------------------------------------------------------- */
-/*  Section 02 — What I bring                                                 */
-/* -------------------------------------------------------------------------- */
-
-export interface Capability {
-  id: string;
-  index: string;
-  title: string;
-  body: string;
-  keywords: string[];
-}
-
-export const capabilities: Capability[] = [
-  {
-    id: 'structure',
-    index: '01',
-    title: 'Structure',
-    body: 'Turn ambiguous operational problems into requirements, workflows and work that can actually be managed.',
-    keywords: ['Requirements Analysis', 'Functional Specifications', 'Process Mapping', 'Project Planning', 'PMO'],
-  },
-  {
-    id: 'build',
-    index: '02',
-    title: 'Build',
-    body: 'Create working technology solutions instead of stopping at a recommendation deck.',
-    keywords: ['MVP Development', 'Python', 'JavaScript', 'Streamlit', 'Automation', 'APIs'],
-  },
-  {
-    id: 'analyze',
-    index: '03',
-    title: 'Analyze',
-    body: 'Use data to understand how a process performs and to support the decision that follows.',
-    keywords: ['SQL', 'Advanced Excel', 'Tableau', 'Machine Learning', 'Dashboard Development'],
-  },
-  {
-    id: 'execute',
-    index: '04',
-    title: 'Execute',
-    body: 'Coordinate people, resources and changing constraints until the work is delivered and used.',
-    keywords: ['Leadership', 'Prioritization', 'Resource Planning', 'Operations', 'Cross-functional Execution'],
-  },
-];
-
-/* -------------------------------------------------------------------------- */
-/*  Section 03 — Selected work                                                */
+/*  Work                                                                      */
 /* -------------------------------------------------------------------------- */
 
 export type ProjectSlug =
@@ -169,7 +58,8 @@ export type ProjectSlug =
   | 'ai-data-analyst'
   | 'risk-prediction';
 
-export type ProjectVisual = 'workflow' | 'product' | 'agents' | 'pipeline';
+/** The interactive objects that stand in for each project. */
+export type DemoKind = 'scheduler' | 'booking' | 'agents' | 'safebuild';
 
 export interface ProjectMetric {
   value: string;
@@ -178,15 +68,17 @@ export interface ProjectMetric {
 
 export interface Project {
   slug: ProjectSlug;
-  index: string;
   title: string;
-  /** Short kicker used in navigation and dense views. */
   shortTitle: string;
   category: string;
   tech: string[];
-  /** One-line recruiter-facing positioning. */
+  /** One line under the picture in the work list. */
+  line: string;
   positioning: string;
-  visual: ProjectVisual;
+  /** The live object that shows this project on the site. */
+  demo: DemoKind;
+  /** Who did the work, when it was not Ran alone. */
+  team?: string;
   metrics: ProjectMetric[];
   context: string;
   problem: string[];
@@ -194,23 +86,21 @@ export interface Project {
   solution: string[];
   outcome: string[];
   skills: string[];
-  domains: DomainId[];
 }
 
 export const projects: Project[] = [
   {
     slug: 'workforce-planning',
-    index: '01',
     title: 'Digital Workforce Planning System',
     shortTitle: 'Workforce Planning',
-    category: 'Operational planning · Decision support',
+    category: 'Operational planning and decision support',
     tech: ['Python', 'JavaScript', 'HTML5', 'Netlify', 'GitHub'],
-    positioning:
-      'From roughly half a day of manual workforce planning to about 30 minutes.',
-    visual: 'workflow',
+    line: 'Led from process mapping to rollout: scheduling for 3 military companies, half a day down to about 30 minutes.',
+    positioning: 'From roughly half a day of manual workforce planning to about 30 minutes.',
+    demo: 'scheduler',
     metrics: [
       { value: '3', label: 'Companies using the system' },
-      { value: '~30 min', label: 'Assignment process, down from ~half a day' },
+      { value: '~30 min', label: 'Per assignment cycle, down from about half a day' },
     ],
     context:
       'An operational personnel scheduling process serving three military companies depended on manual coordination. Assignments were negotiated by hand against a moving set of constraints, and reporting was rebuilt from scratch each cycle.',
@@ -238,32 +128,28 @@ export const projects: Project[] = [
       'Scheduling rules became explicit and reviewable rather than tacit knowledge.',
     ],
     skills: [
-      'Operational Planning',
-      'Resource Allocation',
-      'Workflow Automation',
-      'Decision Support',
-      'Scheduling',
-      'Process Improvement',
-      'Recommendation Logic',
-      'Reporting Automation',
-      'Technology Project Development',
-      'User-Centered Systems',
+      'Operational planning',
+      'Resource allocation',
+      'Workflow automation',
+      'Decision support',
+      'Recommendation logic',
+      'Reporting automation',
+      'User-centred systems',
     ],
-    domains: ['projects', 'systems', 'operations', 'people'],
   },
   {
     slug: 'facility-management',
-    index: '02',
     title: 'Shared Facility Management Platform',
-    shortTitle: 'Facility Management',
-    category: 'Product thinking · Resource management',
+    shortTitle: 'Facility Platform',
+    category: 'Product thinking and resource management',
     tech: ['Python', 'Streamlit'],
+    line: 'Specified, built and rolled out a booking platform that replaced a WhatsApp group for 49 active users.',
     positioning:
-      'Replacing fragmented WhatsApp coordination with one centralized resource-management platform.',
-    visual: 'product',
+      'Replacing fragmented WhatsApp coordination with one centralised resource-management platform.',
+    demo: 'booking',
     metrics: [
       { value: '49', label: 'Active users on the platform' },
-      { value: 'Role-based', label: 'Access, reservations and conflict prevention in one system' },
+      { value: '3 roles', label: 'Admin, member and viewer, each with its own access' },
     ],
     context:
       'Reservations and coordination for a shared facility ran through manual WhatsApp messages. Availability, priority and history existed only as scrollback in a group chat.',
@@ -279,7 +165,7 @@ export const projects: Project[] = [
       'Released to real users and refined the workflow against how they actually booked.',
     ],
     solution: [
-      'A centralized reservation and resource-management application built with Python and Streamlit.',
+      'A centralised reservation and resource-management application built with Python and Streamlit.',
       'Role-based access so different users see and do different things.',
       'Reservation management with conflict prevention built into the booking flow.',
       'Usage monitoring that makes facility utilisation visible.',
@@ -290,31 +176,27 @@ export const projects: Project[] = [
       'Facility utilisation became transparent instead of anecdotal.',
     ],
     skills: [
-      'Product Thinking',
-      'MVP Development',
-      'User Management',
-      'Role-Based Access',
-      'Workflow Design',
-      'Conflict Prevention',
-      'Process Digitization',
-      'Operational Transparency',
-      'Resource Management',
+      'Product thinking',
+      'MVP development',
+      'Role-based access',
+      'Workflow design',
+      'Conflict prevention',
+      'Process digitisation',
     ],
-    domains: ['projects', 'systems', 'people'],
   },
   {
     slug: 'ai-data-analyst',
-    index: '03',
     title: 'Multi-Agent AI Data Analyst',
     shortTitle: 'AI Data Analyst',
-    category: 'Agentic workflows · Analysis automation',
+    category: 'Agentic workflows and analysis automation',
     tech: ['AutoGen Studio', 'Python', 'LLMs', 'Streamlit'],
+    line: 'Designed a four-agent AutoGen workflow that takes raw data to charts and a written report.',
     positioning:
-      'An autonomous AI workflow that takes raw data through analysis, visualization and business insight.',
-    visual: 'agents',
+      'An autonomous AI workflow that takes raw data through analysis, visualisation and business insight.',
+    demo: 'agents',
     metrics: [
-      { value: '4', label: 'Automated stages, from raw data to insight report' },
-      { value: 'Multi-agent', label: 'Architecture orchestrating specialised roles' },
+      { value: '4', label: 'Agent stages, from raw data to insight report' },
+      { value: '0', label: 'Manual hand-offs between the stages' },
     ],
     context:
       'Routine analysis work follows the same shape every time: load the data, interrogate it, chart it, then explain what it means. Each stage is repetitive but requires judgement, which makes it a natural fit for an agentic workflow.',
@@ -341,470 +223,405 @@ export const projects: Project[] = [
     ],
     skills: [
       'Generative AI',
-      'Agentic Workflows',
-      'Process Automation',
-      'Multi-Agent Systems',
-      'Data Analysis',
-      'Business Insights',
-      'LLM Orchestration',
-      'AI-enabled Automation',
+      'Agentic workflows',
+      'Multi-agent systems',
+      'LLM orchestration',
+      'Data analysis',
+      'Business insights',
     ],
-    domains: ['data', 'operations', 'systems'],
   },
   {
     slug: 'risk-prediction',
-    index: '04',
-    title: 'Workplace Risk Prediction',
-    shortTitle: 'Risk Prediction',
-    category: 'Capstone · Predictive analytics',
-    tech: ['Python', 'Random Forest', 'XGBoost'],
+    title: 'SafeBuild AI Pro: construction injury risk',
+    shortTitle: 'SafeBuild AI Pro',
+    category: 'Capstone: machine learning and decision support',
+    tech: ['Python', 'MySQL', 'Gradient Boosting', 'LightGBM', 'SHAP', 'Streamlit', 'MS Project'],
+    line: 'A team capstone: 233,271 OSHA records, two models and an underwriting app that explains every score.',
     positioning:
-      'An end-to-end predictive analytics MVP built to support workplace risk assessment.',
-    visual: 'pipeline',
+      'Prices a construction company’s injury risk before any incident, from five inputs on an insurance application.',
+    demo: 'safebuild',
+    team: 'Team of three: Gaia Cohen, Ran Levi and Bar Narkis. Supervised by Dr. Daniel Dor, Afeka.',
     metrics: [
-      { value: '2', label: 'Model families compared: Random Forest and XGBoost' },
-      { value: 'MVP', label: 'Dashboard for risk prediction and visualization' },
+      { value: '82.1%', label: 'Recall on 41,760 held-out records, against a 70% target' },
+      { value: '76.3%', label: 'AUC of the risk model, against a 70% target' },
     ],
     context:
-      'Final-year capstone project applying a complete data science process to workplace accident risk, from raw data through to a decision-support interface.',
+      'Construction accounts for about a fifth of US work fatalities. Workers’ compensation insurance is priced with the Experience Modification Rate, which needs three years of claims, so new and small companies, the largest segment, are priced on a rough industry rate. The project gives underwriters, safety managers and general contractors a risk assessment at the moment of the application, before any claim exists.',
     problem: [
-      'Workplace risk assessment is often retrospective, reacting to incidents that have already occurred.',
-      'Raw incident data is not directly usable by the people who make prevention decisions.',
+      'New and small companies have no claims history, so they get no data-driven risk assessment at all.',
+      'Most companies report zero injuries, so predicting a count of injuries does not work.',
+      'Insurance decisions must be explainable; a score without a reason cannot be used to price a policy.',
     ],
     approach: [
-      'Ran a full end-to-end data science process rather than an isolated modelling exercise.',
-      'Prepared and engineered the dataset before modelling.',
-      'Compared tree-based approaches, Random Forest and XGBoost, on accident risk prediction.',
-      'Delivered results as a dashboard, because a model that no one can interrogate does not change a decision.',
+      'Planned and ran the project with CRISP-DM, a 225-day MS Project plan, a change log and a risk register.',
+      'Built an ELT pipeline: raw OSHA ITA data (2016–2023) loaded into MySQL, transformed in documented Python.',
+      'Cleaned on business rules rather than statistics, so real extreme accidents were not deleted as outliers.',
+      'Reframed the problem from counting injuries to the probability of one, after finding the zero inflation.',
+      'Compared 10 classification algorithms and built two models: occurrence and, separately, severity.',
+      'Checked forward in time before submission: trained on earlier years, tested on 2022–2023.',
     ],
     solution: [
-      'Data preparation and feature engineering pipeline.',
-      'Predictive models for workplace accident risk using Random Forest and XGBoost.',
-      'Visualization of predicted risk in an MVP dashboard.',
-      'A decision-support framing aimed at prevention rather than reporting.',
+      'Occurrence model: Gradient Boosting on 208,799 records and 9 features, recall 82.1% and AUC 76.3%.',
+      'Severity model: LightGBM on 14,395 cases and 7 pre-incident features, AUC 65.4%, its limits documented.',
+      'A Streamlit app on a live MySQL database, with underwriter, contractor and admin roles.',
+      'From five inputs: a safety grade from A to F, injury and severity probabilities, expected days lost, an industry TRIR comparison, a premium estimate and safety recommendations.',
+      'A “Why this score” panel built on SHAP that shows which inputs raised or lowered each prediction.',
     ],
     outcome: [
-      'A working MVP dashboard covering the full path from data to risk prediction to visualization.',
-      'An end-to-end demonstration of the data science process applied to an operational safety problem.',
-      'Scoped deliberately as an MVP: a decision-support prototype, not a production safety system.',
+      'Both model targets were met: recall 82.1% against 70%, AUC 76.3% against 70%.',
+      'Two exposure measures, hours worked and headcount, carry about 82% of the risk model’s predictive power.',
+      'The temporal check confirmed the model holds up on later years without replacing it.',
+      'A working prototype that returns a full underwriting report in seconds, on a standard computer with no cloud components.',
     ],
     skills: [
-      'Predictive Analytics',
-      'Machine Learning',
-      'Random Forest',
-      'XGBoost',
-      'Risk Analysis',
-      'Data Visualization',
-      'MVP',
-      'Decision Support',
-      'End-to-End Data Process',
+      'Project planning and control',
+      'Risk management',
+      'Data engineering (ELT)',
+      'Machine learning',
+      'Explainable AI',
+      'Decision support',
+      'Stakeholder analysis',
     ],
-    domains: ['data', 'projects'],
   },
 ];
 
 export const projectBySlug = (slug: string): Project | undefined =>
   projects.find((p) => p.slug === slug);
 
+
 /* -------------------------------------------------------------------------- */
-/*  Impact — verified metrics only                                            */
+/*  Hero: the project status card                                             */
 /* -------------------------------------------------------------------------- */
 
-export interface ImpactStat {
-  value: string;
-  /** Numeric portion for the count-up animation, when one exists. */
-  countTo?: number;
-  prefix?: string;
-  suffix?: string;
-  label: string;
-  context?: string;
-  href?: string;
+export interface StatusProject {
+  name: string;
+  status: string;
+  /** Delivery phases, in order; all completed. */
+  phases: string[];
+  result: { label: string; before: string; after: string };
+  href: string;
 }
 
-export const impactStats: ImpactStat[] = [
+/** Shown in turn in the hero card. Phases are taken from each case study. */
+export const statusProjects: StatusProject[] = [
   {
-    value: '3',
-    countTo: 3,
-    label: 'Military companies using the workforce planning system',
+    name: 'Digital Workforce Planning System',
+    status: 'Rolled out',
+    phases: [
+      'Current process mapped',
+      'Scheduling rules made explicit',
+      'Recommendation logic built',
+      'Shipped against live cycles',
+      'Adopted by 3 companies',
+    ],
+    result: { label: 'Assignment cycle', before: '~half a day', after: '~30 min' },
     href: '/projects/workforce-planning',
   },
   {
-    value: '~30 min',
-    countTo: 30,
-    prefix: '~',
-    suffix: ' min',
-    label: 'Personnel assignment process after digitization',
-    context: 'Previously approximately half a day.',
-    href: '/projects/workforce-planning',
-  },
-  {
-    value: '49',
-    countTo: 49,
-    label: 'Active users on the facility management platform',
+    name: 'Shared Facility Management Platform',
+    status: 'Live',
+    phases: [
+      'WhatsApp coordination mapped',
+      'Roles and access defined',
+      'MVP scoped and built',
+      'Released to real users',
+      '49 active users',
+    ],
+    result: { label: 'Coordination', before: 'WhatsApp group', after: 'One platform' },
     href: '/projects/facility-management',
   },
   {
-    value: '4',
-    countTo: 4,
-    label: 'Selected technology projects, shipped end to end',
+    name: 'SafeBuild AI Pro (capstone)',
+    status: 'Submitted',
+    phases: [
+      'Scope and SOW signed off',
+      'OSHA data loaded into MySQL',
+      '10 algorithms compared',
+      'Underwriting app with roles',
+      'Temporal validation passed',
+    ],
+    result: { label: 'Risk model recall', before: 'Target 70%', after: '82.1%' },
+    href: '/projects/risk-prediction',
+  },
+];
+
+/** The tools strip under the hero. */
+export const toolStrip = [
+  'Claude Code',
+  'ChatGPT',
+  'AutoGen Studio',
+  'LLM agents',
+  'Python',
+  'JavaScript',
+  'TypeScript',
+  'Next.js',
+  'Streamlit',
+  'SQL',
+  'Tableau',
+  'Advanced Excel',
+  'MS Project',
+  'SAP ERP',
+  'GitHub',
+  'Vercel',
+  'Netlify',
+];
+
+/* -------------------------------------------------------------------------- */
+/*  What I do                                                                 */
+/* -------------------------------------------------------------------------- */
+
+export interface Service {
+  title: string;
+  body: string;
+  points: string[];
+  tools: string[];
+  proof: { label: string; href: string };
+}
+
+export const services: Service[] = [
+  {
+    title: 'Digital project management',
+    body: 'From the first stakeholder conversation to the day people use the system: scope, requirements, a phased plan, and the rollout itself.',
+    points: ['Requirements and functional specifications', 'Process mapping', 'Phased delivery plans', 'Rollout and adoption'],
+    tools: ['MS Project', 'PMO practice', 'SAP ERP', 'Advanced Excel'],
+    proof: { label: 'Workforce system, adopted by 3 companies', href: '/projects/workforce-planning' },
+  },
+  {
+    title: 'AI implementation',
+    body: 'Bringing AI into the way a team already works: finding the step worth automating, wiring the right model into it, and making sure it is used.',
+    points: ['Workflow automation', 'LLM and agent workflows', 'Data analysis and reporting', 'Decision support'],
+    tools: ['ChatGPT', 'AutoGen Studio', 'LLMs', 'Google Sheets API'],
+    proof: { label: 'Agent workflow, raw data to report', href: '/projects/ai-data-analyst' },
+  },
+  {
+    title: 'AI building',
+    body: 'When the tool does not exist, building it: Claude Code and agents write and run the code while I set the brief, review every change and decide what ships.',
+    points: ['Internal tools and platforms', 'Web front ends', 'Machine learning pipelines', 'Deployment'],
+    tools: ['Claude Code', 'Python', 'JavaScript', 'TypeScript', 'Next.js', 'Streamlit'],
+    proof: { label: 'This site, built with Claude Code', href: person.siteRepo },
   },
 ];
 
 /* -------------------------------------------------------------------------- */
-/*  Experience & leadership                                                   */
+/*  Results                                                                   */
+/* -------------------------------------------------------------------------- */
+
+export interface Kpi {
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  label: string;
+}
+
+export const kpis: Kpi[] = [
+  { value: 3, label: 'military companies run their scheduling on the system I delivered' },
+  { value: 30, prefix: '~', suffix: ' min', label: 'per assignment cycle, down from about half a day' },
+  { value: 49, label: 'active users moved from a WhatsApp group onto one platform' },
+  { value: 82, suffix: '%', label: 'of injury cases flagged by the capstone risk model on held-out data, against a 70% target' },
+];
+
+/* -------------------------------------------------------------------------- */
+/*  Case studies                                                              */
+/* -------------------------------------------------------------------------- */
+
+/** Ran's part in each project, shown on the case list. */
+export const caseRoles: Record<ProjectSlug, string> = {
+  'workforce-planning': 'Led end to end: mapping, requirements, build and rollout',
+  'facility-management': 'Specified, built and rolled out',
+  'ai-data-analyst': 'Designed and built the agent workflow',
+  'risk-prediction': 'Team of three; I ran the final temporal validation',
+};
+
+/* -------------------------------------------------------------------------- */
+/*  SafeBuild AI Pro: the real material                                       */
+/* -------------------------------------------------------------------------- */
+
+/** One view of the real prototype, with the area to point at, in % of the image. */
+export interface PrototypeStep {
+  title: string;
+  body: string;
+  image: string;
+  alt: string;
+  width: number;
+  height: number;
+  focus: { x: number; y: number; w: number; h: number };
+}
+
+export const safebuildSteps: PrototypeStep[] = [
+  {
+    title: 'Five inputs',
+    body: 'An underwriter enters what is on the application: industry, employees, annual exposure hours, size and entity type.',
+    image: '/work/safebuild/report.png',
+    alt: 'SafeBuild AI Pro report for a roofing contractor with 54 employees: safety grade D, incident probability 62.1%',
+    width: 1920,
+    height: 888,
+    focus: { x: 0.3, y: 1.5, w: 29.6, h: 97 },
+  },
+  {
+    title: 'A grade, not a guess',
+    body: 'A roofing contractor with 54 employees and 105,000 hours: grade D, a 62.1% chance of a recordable incident, 77.3% that it is severe.',
+    image: '/work/safebuild/report.png',
+    alt: 'Safety grade D with incident probability 62.1%, high-severity risk 77.3% and 27 workdays lost per incident',
+    width: 1920,
+    height: 888,
+    focus: { x: 35, y: 22.5, w: 59.5, h: 56 },
+  },
+  {
+    title: 'What to do about it',
+    body: 'Recommendations for the trade, here fall arrest, edge protection and ladder safety, beside the severity split from the LightGBM model.',
+    image: '/work/safebuild/severity.png',
+    alt: 'Safety recommendations for roofing and a severity chart: 77.3% severe injury risk',
+    width: 1918,
+    height: 895,
+    focus: { x: 28, y: 31, w: 71, h: 66 },
+  },
+  {
+    title: 'Why this score',
+    body: 'A recommended premium of $233,610, and the SHAP breakdown that shows which inputs pushed the risk up.',
+    image: '/work/safebuild/why-this-score.png',
+    alt: 'Recommended annual premium of $233,610 and a SHAP chart of feature contributions',
+    width: 1914,
+    height: 881,
+    focus: { x: 27.5, y: 2, w: 69, h: 96 },
+  },
+];
+
+export const safebuildTargets = [
+  { label: 'Risk model recall', target: 70, achieved: 82.1, note: 'On 41,760 held-out records' },
+  { label: 'Risk model AUC', target: 70, achieved: 76.3, note: 'Within the range accepted in the literature' },
+  { label: 'Severity model AUC', target: null, achieved: 65.4, note: 'On 2,879 cases; limits documented' },
+] as const;
+
+/** The plan's main phases, simplified from the team's MS Project file (225 days). */
+export const safebuildPlan = {
+  start: '2025-07-28',
+  end: '2026-06-08',
+  days: 225,
+  image: '/work/safebuild/gantt.png',
+  phases: [
+    { name: 'Scope and SOW', start: '2025-07-28', end: '2025-10-23', detail: 'Literature review, market scan and the scope of work, signed off on 23 October.' },
+    { name: 'Data pipeline and database', start: '2025-08-25', end: '2025-11-12', detail: 'ETL from the OSHA files into MySQL, cleaning rules and the operational database.' },
+    { name: 'Requirements and design review', start: '2025-08-25', end: '2025-12-15', detail: 'Requirements, data review and the design review, closed on 15 December.' },
+    { name: 'System design', start: '2025-12-15', end: '2026-02-10', detail: 'System processes, roles and the architecture of the app.' },
+    { name: 'Models and business logic', start: '2026-02-10', end: '2026-04-01', detail: 'The two models, the premium logic and the explanations.' },
+    { name: 'Testing', start: '2026-04-01', end: '2026-05-08', detail: 'Ten system test scenarios, sensitivity checks and a data-integrity check.' },
+    { name: 'Submission and review', start: '2026-05-08', end: '2026-06-08', detail: 'First submission to the supervisor, corrections and the final book.' },
+  ],
+};
+
+/** Artefacts straight from the project files, shown as they were submitted. */
+export const safebuildFiles = [
+  {
+    src: '/work/safebuild/model-comparison.png',
+    width: 2100,
+    height: 1500,
+    alt: 'Four charts comparing ten algorithms: recall, AUC-ROC, precision against recall, and training time',
+    caption: 'The comparison of ten algorithms: recall, AUC, precision against recall and training time.',
+  },
+  {
+    src: '/work/safebuild/confusion-importance.png',
+    width: 1811,
+    height: 618,
+    alt: 'Confusion matrix of the final model on 41,760 test records, and its feature importance chart',
+    caption: 'The final model on the test set, and what drives it: exposure first, then the trade.',
+  },
+  {
+    src: '/work/safebuild/sign-in.png',
+    width: 1853,
+    height: 861,
+    alt: 'SafeBuild AI Pro sign-in screen with a role-based login',
+    caption: 'Sign-in to the prototype: underwriter, contractor and admin each see their own view.',
+  },
+];
+
+/** From the project book's risk register: what was foreseen, what happened, what was done. */
+export const safebuildRisks = [
+  {
+    risk: 'Poor source data',
+    happened: '11.71% of cells missing, and impossible values.',
+    response: 'A transparent removal policy and business-rule thresholds, documented.',
+  },
+  {
+    risk: 'Leakage in feature engineering',
+    happened: 'Partly, during the research stage.',
+    response: 'Pre-incident features kept separate, and a clean deployed model.',
+  },
+  {
+    risk: 'Weak severity prediction',
+    happened: 'Yes: the task is hard by nature.',
+    response: 'Shown openly as a probability, with its threshold sensitivity documented.',
+  },
+  {
+    risk: 'Deployment faults',
+    happened: 'Duplicate imports from parallel connections.',
+    response: 'An import lock in the database and an integrity check.',
+  },
+  {
+    risk: 'Gaps in insurance knowledge',
+    happened: 'Regulatory and actuarial knowledge was needed.',
+    response: 'Systematic research, summarised in the book’s background chapter.',
+  },
+];
+
+/* -------------------------------------------------------------------------- */
+/*  How I run a project                                                       */
+/* -------------------------------------------------------------------------- */
+
+export const processSteps = [
+  { title: 'Discover', body: 'Map the process as it runs today: who does what, how long it takes, who decides.' },
+  { title: 'Specify', body: 'Turn rules that live in people’s heads into requirements people can sign off.' },
+  { title: 'Plan', body: 'Phase the delivery into small releases, shipped against real cycles.' },
+  { title: 'Build with AI', body: 'Claude Code and agents write the code; I direct, review and decide what ships.' },
+  { title: 'Implement', body: 'Roles, access and the switch-over, so the tool replaces the old routine.' },
+  { title: 'Measure', body: 'Adoption and time saved, then the next improvement.' },
+];
+
+/* -------------------------------------------------------------------------- */
+/*  About, experience, education                                              */
 /* -------------------------------------------------------------------------- */
 
 export interface ExperienceEntry {
-  id: string;
   org: string;
   role: string;
   period: string;
-  /** How this experience reads for a technology / project employer. */
-  positioning: string;
-  points: string[];
-  capabilities: string[];
 }
 
 export const experience: ExperienceEntry[] = [
-  {
-    id: 'afeka',
-    org: 'Afeka Academic College',
-    role: 'Teaching Assistant — Arduino I',
-    period: '2026 — Present',
-    positioning:
-      'Evaluating technical work, understanding system logic and communicating improvements clearly.',
-    points: [
-      'Evaluate Python, HTML5 and Arduino projects submitted by students.',
-      'Assess code quality and hardware–software integration.',
-      'Provide structured feedback that students can act on.',
-    ],
-    capabilities: [
-      'Technical Review',
-      'Code Quality',
-      'Systems Thinking',
-      'Structured Feedback',
-      'Stakeholder Communication',
-    ],
-  },
-  {
-    id: 'reserve',
-    org: 'Active Reserve Service',
-    role: 'Combat and Rescue Platoon Commander',
-    period: 'Active',
-    positioning:
-      'Leading people, logistics and execution when conditions change quickly.',
-    points: [
-      'Lead field teams in dynamic environments.',
-      'Own mission planning and operational logistics.',
-      'Organize workforce and priorities under time pressure.',
-    ],
-    capabilities: [
-      'Team Leadership',
-      'Operational Planning',
-      'Logistics',
-      'Prioritization',
-      'Decision-Making Under Pressure',
-      'Workforce Organization',
-    ],
-  },
-  {
-    id: 'buzzr',
-    org: 'Buzzr',
-    role: 'Distribution Route Planner',
-    period: '2021 — 2023',
-    positioning:
-      'Applying analytical thinking to real operational planning decisions.',
-    points: [
-      'Optimized distribution routes by analyzing operational constraints.',
-      'Improved efficiency and resource utilization across the plan.',
-      'Balanced operational cost against customer service levels.',
-    ],
-    capabilities: [
-      'Route Optimization',
-      'Constraint Analysis',
-      'Resource Utilization',
-      'Operational Efficiency',
-      'Service Levels',
-    ],
-  },
+  { org: 'Afeka Academic College', role: 'Teaching Assistant, Arduino I', period: '2026 to now' },
+  { org: 'Reserve service', role: 'Combat and Rescue Platoon Commander', period: 'Active' },
+  { org: 'Buzzr', role: 'Distribution Route Planner', period: '2021 to 2023' },
 ];
 
-/* -------------------------------------------------------------------------- */
-/*  Technology ecosystem                                                      */
-/* -------------------------------------------------------------------------- */
-
-export interface Skill {
-  name: string;
-  /** Projects on this site that demonstrably used the skill (CV-supported). */
-  usedIn?: ProjectSlug[];
-  /** Shown when there is no direct project evidence to point at. */
-  note?: string;
-}
-
-export interface SkillGroup {
-  id: string;
-  title: string;
-  caption: string;
-  skills: Skill[];
-}
-
-export const skillGroups: SkillGroup[] = [
+export const education = [
   {
-    id: 'projects-systems',
-    title: 'Projects & Systems',
-    caption: 'Structuring work and turning requirements into systems.',
-    skills: [
-      { name: 'PMO', note: 'Project governance and delivery practice.' },
-      { name: 'MS Project', note: 'Project scheduling and planning.' },
-      {
-        name: 'Requirements Analysis',
-        usedIn: ['workforce-planning', 'facility-management'],
-      },
-      {
-        name: 'Functional Specifications',
-        usedIn: ['workforce-planning', 'facility-management'],
-      },
-      {
-        name: 'Process Mapping',
-        usedIn: ['workforce-planning', 'facility-management'],
-      },
-      {
-        name: 'MVP Development',
-        usedIn: ['facility-management', 'risk-prediction', 'ai-data-analyst'],
-      },
-      { name: 'SAP ERP', note: 'Enterprise systems and information flows.' },
-    ],
-  },
-  {
-    id: 'data-bi',
-    title: 'Data & BI',
-    caption: 'Making performance measurable and decisions defensible.',
-    skills: [
-      { name: 'SQL', note: 'Data-oriented systems and analysis.' },
-      { name: 'Advanced Excel', note: 'Operational analysis and modelling.' },
-      { name: 'Tableau', note: 'Business intelligence and reporting.' },
-      {
-        name: 'Dashboard Development',
-        usedIn: ['risk-prediction', 'ai-data-analyst'],
-      },
-      { name: 'Random Forest', usedIn: ['risk-prediction'] },
-      { name: 'XGBoost', usedIn: ['risk-prediction'] },
-    ],
-  },
-  {
-    id: 'development',
-    title: 'Development & Automation',
-    caption: 'Building the thing, not just specifying it.',
-    skills: [
-      {
-        name: 'Python',
-        usedIn: ['workforce-planning', 'facility-management', 'ai-data-analyst', 'risk-prediction'],
-      },
-      { name: 'JavaScript', usedIn: ['workforce-planning'] },
-      { name: 'HTML5', usedIn: ['workforce-planning'] },
-      { name: 'Streamlit', usedIn: ['facility-management', 'ai-data-analyst'] },
-      { name: 'Google Sheets API', note: 'Automation across spreadsheet-based workflows.' },
-      { name: 'GitHub', usedIn: ['workforce-planning'] },
-      { name: 'Netlify', usedIn: ['workforce-planning'] },
-    ],
-  },
-  {
-    id: 'ai',
-    title: 'AI',
-    caption: 'Using generative AI as a build tool and as an architecture.',
-    skills: [
-      { name: 'AutoGen Studio', usedIn: ['ai-data-analyst'] },
-      { name: 'Agentic Workflows', usedIn: ['ai-data-analyst'] },
-      { name: 'LLMs', usedIn: ['ai-data-analyst'] },
-      { name: 'Claude Code', note: 'AI-assisted development.' },
-      { name: 'ChatGPT', note: 'AI-assisted analysis and development.' },
-    ],
-  },
-  {
-    id: 'engineering',
-    title: 'Engineering',
-    caption: 'Industrial engineering foundations and hardware literacy.',
-    skills: [
-      { name: 'Arduino', note: 'Taught and assessed as Teaching Assistant, Arduino I.' },
-      { name: 'Microcontrollers', note: 'Hardware–software integration.' },
-      { name: 'AutoCAD', note: 'Engineering design.' },
-      { name: 'SolidWorks', note: 'Engineering design.' },
-    ],
-  },
-];
-
-/* -------------------------------------------------------------------------- */
-/*  Education                                                                 */
-/* -------------------------------------------------------------------------- */
-
-export interface EducationEntry {
-  degree: string;
-  institution: string;
-  period: string;
-  themes: string[];
-}
-
-export const education: EducationEntry[] = [
-  {
-    degree: 'B.Sc. Industrial Engineering & Management',
+    degree: 'B.Sc. Industrial Engineering and Management',
     institution: 'Afeka Academic College of Engineering',
-    period: '2022 — Present',
-    themes: [
-      'Information Systems',
-      'Project Management',
-      'Operations',
-      'Data Analysis',
-      'Optimization',
-      'Business Intelligence',
-    ],
+    period: '2022 to now',
   },
   {
-    degree: 'Practical Engineer Diploma — Industrial Engineering & Management',
+    degree: 'Practical Engineer, Industrial Engineering and Management',
     institution: 'Tel Aviv College of Practical Engineering',
-    period: '2019 — 2020',
-    themes: ['Industrial Engineering', 'Operations', 'Process Analysis'],
+    period: '2019 to 2020',
   },
 ];
 
-/* -------------------------------------------------------------------------- */
-/*  Operating principles                                                      */
-/* -------------------------------------------------------------------------- */
-
-export const principles: string[] = [
-  'Understand the process before optimizing it.',
-  'If a workflow repeats, ask why it is still manual.',
-  'Build around the user, not around the technology.',
-  'Data is useful when it improves a decision.',
-  'A system is successful only when people actually use it.',
-];
-
-/* -------------------------------------------------------------------------- */
-/*  Recruiter mode — the 60-second view                                       */
-/* -------------------------------------------------------------------------- */
-
-export const recruiterView = {
-  who: 'Industrial Engineering & Management professional focused on technology, systems and project execution.',
-  what: 'Builds practical digital solutions that combine process analysis, technology, data and automation.',
-  proof: [
-    'Workforce planning system used by three military companies.',
-    'Planning time reduced from approximately half a day to approximately 30 minutes.',
-    'Resource management platform supporting 49 active users.',
-    'Multi-agent AI analytics workflow, from raw data to insight report.',
-    'Predictive risk analytics capstone using Random Forest and XGBoost.',
-    'Technical project assessment as Teaching Assistant, Arduino I.',
-    'Operational leadership and logistics as a Combat and Rescue Platoon Commander.',
-    'Distribution route planning at Buzzr, 2021–2023.',
-  ],
-  target: [
-    'Project Management',
-    'PMO',
-    'Product',
-    'Information Systems',
-    'Business / Systems Analysis',
-    'Technology Operations',
-  ],
-} as const;
-
-/* -------------------------------------------------------------------------- */
-/*  Ask about Ran — answers assembled from the data above                     */
-/* -------------------------------------------------------------------------- */
-
-export interface AskEntry {
-  id: string;
-  question: string;
-  answer: string;
-  points: string[];
-  cta?: { label: string; href: string };
-}
-
-export const askEntries: AskEntry[] = [
-  {
-    id: 'built',
-    question: 'What has Ran built?',
-    answer:
-      'Four technology projects, each taken from an operational problem through to something people can use.',
-    points: [
-      'Digital Workforce Planning System — scheduling, recommendation logic and automated reporting.',
-      'Shared Facility Management Platform — centralized reservations with role-based access.',
-      'Multi-Agent AI Data Analyst — an agentic workflow from raw data to insight report.',
-      'Workplace Risk Prediction — an end-to-end predictive analytics MVP.',
-    ],
-    cta: { label: 'See selected work', href: '#work' },
-  },
-  {
-    id: 'users',
-    question: 'Does Ran have real users?',
-    answer: 'Yes. Two of the systems were adopted in live operational settings.',
-    points: [
-      'The workforce planning system is used by three military companies.',
-      'The facility management platform serves 49 active users.',
-      'Both replaced manual coordination that was already happening.',
-    ],
-    cta: { label: 'See the impact', href: '#impact' },
-  },
-  {
-    id: 'pm',
-    question: 'What project management experience does he have?',
-    answer:
-      'Project management demonstrated through delivery rather than through job title alone.',
-    points: [
-      'Requirements analysis, functional specifications and process mapping across two systems.',
-      'Planning and resource allocation as a Combat and Rescue Platoon Commander.',
-      'Distribution route planning against real operational constraints at Buzzr.',
-      'PMO and MS Project as part of an Industrial Engineering & Management education.',
-    ],
-    cta: { label: 'See experience', href: '#experience' },
-  },
-  {
-    id: 'tech',
-    question: 'What technologies does he work with?',
-    answer:
-      'A stack that spans project and BI tooling, development, data science and AI.',
-    points: [
-      'Projects & systems: PMO, MS Project, requirements analysis, process mapping, SAP ERP.',
-      'Data & BI: SQL, Advanced Excel, Tableau, Random Forest, XGBoost.',
-      'Development: Python, JavaScript, HTML5, Streamlit, Google Sheets API, GitHub, Netlify.',
-      'AI: AutoGen Studio, agentic workflows, LLMs, Claude Code, ChatGPT.',
-    ],
-    cta: { label: 'Explore the ecosystem', href: '#ecosystem' },
-  },
-  {
-    id: 'leadership',
-    question: 'What demonstrates leadership?',
-    answer:
-      'Responsibility for people and for outcomes, in settings where conditions change quickly.',
-    points: [
-      'Combat and Rescue Platoon Commander: field teams, mission planning, operational logistics.',
-      'Teaching Assistant, Arduino I: assessing technical work and giving structured feedback.',
-      'Driving adoption of two systems that replaced established manual routines.',
-    ],
-    cta: { label: 'See experience', href: '#experience' },
-  },
-  {
-    id: 'roles',
-    question: 'What roles is he targeting?',
-    answer:
-      'Junior roles where projects, information systems, data and operations intersect.',
-    points: [
-      'Project Management, Project Coordination and PMO.',
-      'Product Management and Product Operations.',
-      'Information Systems, Systems Analysis and Business Analysis.',
-      'Technology Operations and data-driven operations roles.',
-    ],
-    cta: { label: 'Get in touch', href: '#contact' },
-  },
+export const targetRoles = [
+  'Digital project management',
+  'AI implementation',
+  'PMO and project coordination',
+  'Product and technology operations',
 ];
 
 /* -------------------------------------------------------------------------- */
 /*  Navigation                                                                */
 /* -------------------------------------------------------------------------- */
 
-export const navSections = [
-  { id: 'work', label: 'Work' },
-  { id: 'capabilities', label: 'Capabilities' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'about', label: 'About' },
-  { id: 'contact', label: 'Contact' },
+export const navLinks = [
+  { href: '/#services', label: 'Services' },
+  { href: '/#demo', label: 'Try it' },
+  { href: '/#work', label: 'Case studies' },
+  { href: '/#process', label: 'Process' },
+  { href: '/#about', label: 'About' },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -813,36 +630,25 @@ export const navSections = [
 
 export const seo = {
   siteName: 'Ran Levi',
-  title: 'Ran Levi | Technology Projects, Systems & Operations',
+  title: 'Ran Levi | Digital project manager, AI implementer and builder',
   description:
-    'Industrial Engineering & Management professional combining project management, information systems, data, automation and operational execution to build practical technology solutions.',
+    'Ran Levi runs digital projects from requirements to adoption, and implements and builds the AI tools that deliver them: Claude Code, LLM agents, Python and the web.',
   url: 'https://personal-site-black-psi.vercel.app/',
   keywords: [
     'Ran Levi',
-    'Project Management',
+    'Digital project manager',
+    'Project management',
     'PMO',
-    'Project Coordination',
-    'Information Systems',
-    'Systems Analysis',
-    'Business Analysis',
-    'Requirements Analysis',
-    'Functional Specifications',
-    'Process Mapping',
-    'Digital Transformation',
-    'Workflow Automation',
-    'Process Improvement',
-    'Resource Planning',
-    'Product Management',
-    'Product Operations',
-    'MVP Development',
-    'Business Intelligence',
-    'Dashboard Development',
-    'Industrial Engineering and Management',
-    'SQL',
+    'AI implementation',
+    'AI builder',
+    'Requirements analysis',
+    'Process mapping',
+    'Claude Code',
+    'LLM agents',
+    'AutoGen',
+    'Workflow automation',
     'Python',
-    'Tableau',
-    'SAP ERP',
-    'Machine Learning',
-    'Decision Support',
+    'Next.js',
+    'Industrial Engineering and Management',
   ],
 } as const;

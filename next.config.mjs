@@ -3,9 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
-  experimental: {
-    optimizePackageImports: ['framer-motion'],
-  },
+  // Keep the development badge out of screenshots.
+  devIndicators: false,
 };
 
 export default nextConfig;
