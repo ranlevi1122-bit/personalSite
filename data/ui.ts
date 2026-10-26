@@ -1,0 +1,246 @@
+import type { Locale } from '@/lib/i18n';
+import type { DemoKind } from './portfolioData';
+
+/**
+ * The words of the interface itself, in both languages: headings, buttons,
+ * labels. The content (projects, services, facts) is in portfolioData.ts and
+ * portfolioData.he.ts.
+ */
+
+const en = {
+  nav: {
+    skip: 'Skip to content',
+    home: (name: string) => `${name}, home`,
+    main: 'Main',
+    contact: 'Contact',
+    menu: 'Menu',
+    close: 'Close',
+    email: 'Email Ran',
+    switchLabel: 'עברית',
+    switchAria: 'קריאת האתר בעברית',
+  },
+  hero: {
+    email: 'Email me',
+    cases: 'See the case studies',
+    roles: (r: readonly string[]) => `${r[0]}, ${r[1]} and ${r[2]}`,
+    subject: 'Hello Ran',
+  },
+  strip: 'Tools I deliver with',
+  services: {
+    title: ['What I do'],
+    note: 'Three roles that meet in one project: running it, bringing AI into it, and building what it needs.',
+    tools: 'Tools',
+  },
+  results: { title: ['What the work', 'delivered'] },
+  tryIt: {
+    title: ['Staff the board', 'yourself'],
+    note: 'A working model of the scheduler three companies plan with, on invented names. Drag people onto shifts or let it fill the board, and watch the checks catch what a planner would.',
+    link: 'How the real system was delivered',
+  },
+  cases: {
+    title: ['Case studies'],
+    note: 'Five systems, each shown working: three replaced work people did by hand, one is a two-day R&D build, and one is my team’s capstone.',
+    role: 'My role:',
+    open: (demo: DemoKind): string =>
+      demo === 'safebuild' ? 'See the prototype and results' : demo === 'launch' ? 'See the system at work' : 'Try it in the case study',
+    preview: (title: string) => `Case preview: ${title}`,
+  },
+  process: {
+    title: ['How I run', 'a project'],
+    note: 'The same six steps on every project, with AI doing the building in the middle of it.',
+  },
+  about: {
+    title: ['About'],
+    bio: [
+      'I manage digital projects end to end: I map the process, write the requirements, build or implement the tool with AI, and stay until people use it.',
+      'I am in my fourth year of Industrial Engineering and Management at Afeka, where I also assist in teaching Arduino I. In the reserves I command a combat and rescue platoon: mission planning, logistics, and a team to organise under time pressure.',
+    ],
+    based: 'Based in',
+    languages: 'Languages',
+    and: ' and ',
+    open: 'Open to',
+    experience: 'Experience',
+    education: 'Education',
+    cv: 'Download my CV',
+  },
+  contact: {
+    title: ['Have a project that', 'should run better?'],
+    body: 'I am open to roles and projects in digital project management and AI implementation. Tell me what you are working on.',
+    email: 'Email me',
+    linkedin: 'Connect on LinkedIn',
+    labels: { email: 'Email', phone: 'Phone', linkedin: 'LinkedIn', github: 'GitHub', cv: 'CV' },
+    download: 'Download PDF',
+  },
+  footer: {
+    roles: 'Digital project manager, AI implementer and AI builder',
+    site: 'On this site',
+    contact: 'Contact',
+    email: 'Email',
+    phone: 'Phone',
+    cv: 'CV',
+    elsewhere: 'Elsewhere',
+    privacy: 'Visits are counted anonymously: no IP addresses, no advertising cookies, and Do Not Track is honoured.',
+    built: 'Built with Next.js and Claude Code',
+  },
+  status: {
+    label: 'Project status',
+    phases: (n: number) => `${n} of ${n} phases`,
+    done: 'Done',
+    read: 'Read the case study',
+    choose: 'Choose a project',
+  },
+  caseStudy: {
+    builtWith: 'Built with',
+    kind: 'Kind of work',
+    situation: 'The situation',
+    wrong: 'What was going wrong',
+    structured: 'How the work was structured',
+    built: 'What was built',
+    changed: 'What changed',
+    skills: 'Skills in use',
+    next: 'Next case study',
+    plan: { title: 'The plan', note: 'The main phases of the team’s 225-day MS Project plan, with its three reviews.' },
+    risks: 'Risks, as they played out',
+    results: { title: 'The results', note: 'Measured on records the models never saw in training, as reported in the project book.' },
+    files: { title: 'From the project files', note: 'Figures and screens as the team submitted them.' },
+    screens: { title: 'The real screens', note: 'The running system in its demo mode. Pick a step, or let it play.' },
+    produced: {
+      title: 'What it produced',
+      note: 'The landing page from the reference launch, on a desktop and a phone, and one agent’s own page.',
+    },
+    caption: {
+      launch: 'The system’s reference launch of one tap, replayed step by step and translated from Hebrew. Run it, open any agent, then sign off.',
+      scheduler: 'A working model on invented names. The checks are modelled on the real system’s.',
+      booking: 'A working model of the platform on invented names. Switch roles to see what each one can do.',
+      agents: 'The four-agent workflow run on sample data. Every figure in the report is worked out from the chart.',
+      safebuild: 'Screens from the team’s working prototype: the report for a roofing contractor with 54 employees.',
+    } as Record<DemoKind, string>,
+    notFound: 'Project not found',
+  },
+  notFound: {
+    title: 'Nothing here',
+    body: 'The link may be out of date. Everything on this site is reachable from these pages.',
+    back: 'Back to the start',
+  },
+};
+
+export type UI = typeof en;
+
+const he: UI = {
+  nav: {
+    skip: 'דילוג לתוכן',
+    home: (name) => `${name}, דף הבית`,
+    main: 'ראשי',
+    contact: 'צור קשר',
+    menu: 'תפריט',
+    close: 'סגירה',
+    email: 'שליחת מייל לרן',
+    switchLabel: 'English',
+    switchAria: 'Read the site in English',
+  },
+  hero: {
+    email: 'שלחו לי מייל',
+    cases: 'לפרויקטים',
+    roles: (r) => `${r[0]}, ${r[1]} ו${r[2]}`,
+    subject: 'שלום רן',
+  },
+  strip: 'הכלים שאני עובד איתם',
+  services: {
+    title: ['מה אני עושה'],
+    note: 'שלושה תפקידים שנפגשים בפרויקט אחד: לנהל אותו, להכניס אליו AI ולבנות את מה שהוא צריך.',
+    tools: 'כלים',
+  },
+  results: { title: ['מה העבודה', 'הביאה'] },
+  tryIt: {
+    title: ['שבצו את הלוח', 'בעצמכם'],
+    note: 'מודל עובד של מערכת השיבוץ ששלוש פלוגות מתכננות איתה, עם שמות בדויים. גררו אנשים למשמרות או תנו לה למלא את הלוח, וראו את הבדיקות תופסות את מה שמתכנן היה תופס.',
+    link: 'איך המערכת האמיתית נבנתה ונמסרה',
+  },
+  cases: {
+    title: ['פרויקטים'],
+    note: 'חמש מערכות, כל אחת מוצגת בפעולה: שלוש החליפו עבודה ידנית, אחת היא פרויקט מו״פ של יומיים, ואחת היא פרויקט הגמר של הצוות שלי.',
+    role: 'התפקיד שלי:',
+    open: (demo) =>
+      demo === 'safebuild' ? 'לאב הטיפוס ולתוצאות' : demo === 'launch' ? 'לראות את המערכת בעבודה' : 'לנסות בעמוד הפרויקט',
+    preview: (title) => `תצוגת פרויקט: ${title}`,
+  },
+  process: {
+    title: ['איך אני מנהל', 'פרויקט'],
+    note: 'אותם שישה שלבים בכל פרויקט, ו-AI עושה את הבנייה באמצע.',
+  },
+  about: {
+    title: ['אודות'],
+    bio: [
+      'אני מנהל פרויקטים דיגיטליים מקצה לקצה: ממפה את התהליך, כותב את הדרישות, בונה או מטמיע את הכלי עם AI, ונשאר עד שאנשים משתמשים בו.',
+      'אני בשנה הרביעית ללימודי הנדסת תעשייה וניהול באפקה, ושם אני גם מתרגל Arduino I. במילואים אני מפקד מחלקת חילוץ והצלה: תכנון משימות, לוגיסטיקה, וצוות שצריך לארגן תחת לחץ זמן.',
+    ],
+    based: 'מיקום',
+    languages: 'שפות',
+    and: ' ו',
+    open: 'מחפש',
+    experience: 'ניסיון',
+    education: 'השכלה',
+    cv: 'להורדת קורות החיים',
+  },
+  contact: {
+    title: ['יש פרויקט שצריך', 'לרוץ טוב יותר?'],
+    body: 'אני פתוח לתפקידים ולפרויקטים בניהול פרויקטים דיגיטליים ובהטמעת AI. ספרו לי על מה אתם עובדים.',
+    email: 'שלחו לי מייל',
+    linkedin: 'להתחבר בלינקדאין',
+    labels: { email: 'מייל', phone: 'טלפון', linkedin: 'LinkedIn', github: 'GitHub', cv: 'קורות חיים' },
+    download: 'הורדה (PDF)',
+  },
+  footer: {
+    roles: 'מנהל פרויקטים דיגיטליים, מטמיע ובונה AI',
+    site: 'באתר',
+    contact: 'יצירת קשר',
+    email: 'מייל',
+    phone: 'טלפון',
+    cv: 'קורות חיים',
+    elsewhere: 'ברשת',
+    privacy: 'הביקורים נספרים באופן אנונימי: בלי כתובות IP, בלי עוגיות פרסום, ובקשת Do Not Track מכובדת.',
+    built: 'נבנה עם Next.js ו-Claude Code',
+  },
+  status: {
+    label: 'סטטוס פרויקט',
+    phases: (n) => `${n} מתוך ${n} שלבים`,
+    done: 'הושלם',
+    read: 'לפרויקט המלא',
+    choose: 'בחירת פרויקט',
+  },
+  caseStudy: {
+    builtWith: 'נבנה עם',
+    kind: 'סוג העבודה',
+    situation: 'הרקע',
+    wrong: 'מה לא עבד',
+    structured: 'איך העבודה נבנתה',
+    built: 'מה נבנה',
+    changed: 'מה השתנה',
+    skills: 'מיומנויות',
+    next: 'לפרויקט הבא',
+    plan: { title: 'התוכנית', note: 'השלבים העיקריים בתוכנית ה-MS Project של הצוות, 225 ימים ושלוש סקירות.' },
+    risks: 'סיכונים, כפי שהתממשו',
+    results: { title: 'התוצאות', note: 'נמדדו על רשומות שהמודלים לא ראו באימון, כפי שדווחו בספר הפרויקט.' },
+    files: { title: 'מתוך קבצי הפרויקט', note: 'גרפים ומסכים כפי שהצוות הגיש אותם.' },
+    screens: { title: 'המסכים האמיתיים', note: 'המערכת שרצה, במצב ההדגמה שלה. בחרו שלב, או תנו לה לנגן.' },
+    produced: {
+      title: 'מה היא הפיקה',
+      note: 'דף הנחיתה מהשקת הדוגמה, במחשב ובטלפון, ועמוד של סוכן אחד.',
+    },
+    caption: {
+      launch: 'השקת הדוגמה של המערכת על ברז אחד, צעד אחר צעד, עם הפלטים המקוריים. הריצו, פתחו כל סוכן, ואז אשרו.',
+      scheduler: 'מודל עובד עם שמות בדויים. הבדיקות בנויות לפי אלה של המערכת האמיתית.',
+      booking: 'מודל עובד של הפלטפורמה עם שמות בדויים. החליפו תפקיד כדי לראות מה כל אחד יכול לעשות.',
+      agents: 'תהליך ארבעת הסוכנים על נתוני דוגמה. כל מספר בדוח מחושב מהגרף.',
+      safebuild: 'מסכים מאב הטיפוס העובד של הצוות: הדוח לקבלן גגות עם 54 עובדים.',
+    },
+    notFound: 'הפרויקט לא נמצא',
+  },
+  notFound: {
+    title: 'אין כאן כלום',
+    body: 'ייתכן שהקישור ישן. כל מה שבאתר זמין מהעמודים האלה.',
+    back: 'חזרה להתחלה',
+  },
+};
+
+export const ui = (locale: Locale): UI => (locale === 'he' ? he : en);

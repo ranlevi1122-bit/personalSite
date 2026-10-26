@@ -1,13 +1,17 @@
-import { toolStrip } from '@/data/portfolioData';
+import { getContent } from '@/data/content';
+import { ui } from '@/data/ui';
+import type { Locale } from '@/lib/i18n';
 
 /**
  * The tools Ran delivers with, running slowly past. The list is rendered
  * twice so the loop is seamless; the copy is hidden from assistive tech.
  */
-export function ToolStrip() {
+export function ToolStrip({ locale }: { locale: Locale }) {
+  const { toolStrip } = getContent(locale);
+  const label = ui(locale).strip;
   return (
-    <section className="strip" aria-label="Tools I deliver with" data-tone="dark">
-      <p className="strip__label">Tools I deliver with</p>
+    <section className="strip" aria-label={label} data-tone="dark">
+      <p className="strip__label">{label}</p>
       <div className="strip__window">
         <div className="strip__track">
           <ul style={{ display: 'flex', listStyle: 'none', margin: 0, padding: 0 }}>

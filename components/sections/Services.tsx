@@ -1,17 +1,21 @@
 import Link from 'next/link';
-import { services } from '@/data/portfolioData';
+import { getContent } from '@/data/content';
+import { ui } from '@/data/ui';
+import { localePath, type Locale } from '@/lib/i18n';
 import { Reveal, Stagger, StaggerItem } from '@/components/ui/Reveal';
 import { Lines } from '@/components/ui/Lines';
 
 /** What Ran does: project management first, then implementing and building AI. */
-export function Services() {
+export function Services({ locale }: { locale: Locale }) {
+  const { services } = getContent(locale);
+  const t = ui(locale).services;
   return (
     <section id="services" data-section="services" className="section" aria-labelledby="services-title" data-tone="light">
       <div className="shell">
         <div className="grid12 sec-head">
-          <Lines id="services-title" lines={['What I do']} />
+          <Lines id="services-title" lines={t.title} />
           <Reveal as="div" className="sec-head__note">
-            <p>Three roles that meet in one project: running it, bringing AI into it, and building what it needs.</p>
+            <p>{t.note}</p>
           </Reveal>
         </div>
 
@@ -28,12 +32,12 @@ export function Services() {
                   ))}
                 </ul>
                 <p className="service__tools">
-                  <b>Tools</b>
+                  <b>{t.tools}</b>
                   {s.tools.join(', ')}
                 </p>
                 <div className="service__proof">
                   <Link
-                    href={s.proof.href}
+                    href={localePath(locale, s.proof.href)}
                     className="proof-link"
                     {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
                   >

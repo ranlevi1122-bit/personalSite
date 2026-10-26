@@ -5,6 +5,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { trackDemo } from '@/lib/analytics/client';
 import type { PrototypeStep } from '@/data/portfolioData';
 import { DemoWindow, ScaledStage, usePlaying, type DemoMode } from './shared';
+import { useLocale } from '@/components/LocaleProvider';
 
 /**
  * A guided tour of a real system's screens: each step pans and zooms to the
@@ -46,6 +47,7 @@ export function Walkthrough({
   mode?: DemoMode;
 }) {
   const preview = mode === 'preview';
+  const locale = useLocale();
   const [index, setIndex] = useState(0);
   const [auto, setAuto] = useState(true);
   const { ref, playing } = usePlaying<HTMLDivElement>(true);
@@ -98,7 +100,7 @@ export function Walkthrough({
             {frame}
             <div className="wt-preview__caption">
               <span className="tnum">
-                Step {index + 1} of {steps.length}
+                {locale === 'he' ? `שלב ${index + 1} מתוך ${steps.length}` : `Step ${index + 1} of ${steps.length}`}
               </span>
               <b>{step.title}</b>
               <p>{step.body}</p>

@@ -2,37 +2,44 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { launchSteps, person, projects, projectBySlug, safebuildFiles, seo, type DemoKind } from '@/data/portfolioData';
+import { getContent } from '@/data/content';
+import { ui } from '@/data/ui';
+import { isLocale, localePath, locales, type Locale } from '@/lib/i18n';
+import { projects as allProjects } from '@/data/portfolioData';
 import { Reveal, Stagger, StaggerItem } from '@/components/ui/Reveal';
 import { Arrow } from '@/components/ui/Arrow';
 import { ProjectDemo } from '@/components/demos/ProjectDemo';
 import { PlanTimeline, RiskRegister, SafeBuildResults } from '@/components/demos/SafeBuild';
 import { Walkthrough } from '@/components/demos/Walkthrough';
 
+type Params = Promise<{ locale: string; slug: string }>;
+
 export function generateStaticParams() {
-  return projects.map((p) => ({ slug: p.slug }));
+  return locales.flatMap((locale) => allProjects.map((p) => ({ locale, slug: p.slug })));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  if (!isLocale(locale)) return {};
+  const { person, projectBySlug, seo } = getContent(locale);
   const project = projectBySlug(slug);
-  if (!project) return { title: 'Project not found' };
+  if (!project) return { title: ui(locale).caseStudy.notFound };
 
   const description = `${project.positioning} ${project.context}`.slice(0, 180);
+  const path = localePath(locale, `/projects/${project.slug}`);
 
   return {
     title: project.title,
     description,
-    alternates: { canonical: `/projects/${project.slug}` },
+    alternates: {
+      canonical: path,
+      languages: { en: `/projects/${project.slug}`, he: `/he/projects/${project.slug}` },
+    },
     openGraph: {
       type: 'article',
       title: `${project.title} | ${person.name}`,
       description,
-      url: `${seo.url}projects/${project.slug}`,
+      url: `${seo.url}${path.slice(1)}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -41,15 +48,6 @@ export async function generateMetadata({
     },
   };
 }
-
-/** What the visitor is looking at, said once under the live object. */
-const demoCaption: Record<DemoKind, string> = {
-  launch: 'The system’s reference launch of one tap, replayed step by step and translated from Hebrew. Run it, open any agent, then sign off.',
-  scheduler: 'A working model on invented names. The checks are modelled on the real system’s.',
-  booking: 'A working model of the platform on invented names. Switch roles to see what each one can do.',
-  agents: 'The four-agent workflow run on sample data. Every figure in the report is worked out from the chart.',
-  safebuild: 'Screens from the team’s working prototype: the report for a roofing contractor with 54 employees.',
-};
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -83,8 +81,12 @@ function List({ items }: { items: string[] }) {
   );
 }
 
-export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function ProjectPage({ params }: { params: Params }) {
+  const { locale: raw, slug } = await params;
+  if (!isLocale(raw)) notFound();
+  const locale: Locale = raw;
+  const { launchSteps, projectBySlug, projects, safebuildFiles } = getContent(locale);
+  const t = ui(locale).caseStudy;
   const project = projectBySlug(slug);
   if (!project) notFound();
 
@@ -112,13 +114,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           ))}
           <StaggerItem as="li" className="cs-fact">
             <span className="cs-fact__label" style={{ marginTop: 0, color: 'var(--fg-c)' }}>
-              Built with
+              {t.builtWith}
             </span>
-            <span className="cs-fact__label">{project.tech.join(', ')}</span>
+            <span className="cs-fact__label" dir="ltr">
+              {project.tech.join(', ')}
+            </span>
           </StaggerItem>
           <StaggerItem as="li" className="cs-fact">
             <span className="cs-fact__label" style={{ marginTop: 0, color: 'var(--fg-c)' }}>
-              Kind of work
+              {t.kind}
             </span>
             <span className="cs-fact__label">{project.category}</span>
           </StaggerItem>
@@ -126,51 +130,51 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
         <Reveal className="cs-hero-ui" data-section="case-demo">
           <ProjectDemo kind={project.demo} />
-          <p className="caption">{demoCaption[project.demo]}</p>
+          <p className="caption">{t.caption[project.demo]}</p>
         </Reveal>
       </div>
 
       <div className="shell" data-tone="light" data-section="case-story">
-        <Block title="The situation">
+        <Block title={t.situation}>
           <p>{project.context}</p>
         </Block>
-        <Block title="What was going wrong">
+        <Block title={t.wrong}>
           <List items={project.problem} />
         </Block>
-        <Block title="How the work was structured">
+        <Block title={t.structured}>
           <List items={project.approach} />
         </Block>
 
         {capstone && (
           <>
-            <Wide title="The plan" note="The main phases of the team’s 225-day MS Project plan, with its three reviews.">
+            <Wide title={t.plan.title} note={t.plan.note}>
               <PlanTimeline />
             </Wide>
-            <Block title="Risks, as they played out">
+            <Block title={t.risks}>
               <RiskRegister />
             </Block>
           </>
         )}
 
-        <Block title="What was built">
+        <Block title={t.built}>
           <List items={project.solution} />
         </Block>
 
         {project.demo === 'launch' && (
-          <Wide title="The real screens" note="The running system in its demo mode. Pick a step, or let it play.">
+          <Wide title={t.screens.title} note={t.screens.note}>
             <Walkthrough
               steps={launchSteps}
               track="launch"
               app="Launch Engine"
-              context="Reference launch"
-              pill="Real screens"
+              context={locale === 'he' ? 'השקת הדוגמה' : 'Reference launch'}
+              pill={locale === 'he' ? 'מסכים אמיתיים' : 'Real screens'}
               aspect="1440 / 900"
             />
           </Wide>
         )}
 
         {project.gallery && (
-          <Wide title="What it produced" note="The landing page from the reference launch, on a desktop and a phone, and one agent’s own page.">
+          <Wide title={t.produced.title} note={t.produced.note}>
             <div className="cs-gallery">
               {project.gallery.map((g) => (
                 <figure
@@ -197,10 +201,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
 
         {capstone && (
           <>
-            <Wide title="The results" note="Measured on records the models never saw in training, as reported in the project book.">
+            <Wide title={t.results.title} note={t.results.note}>
               <SafeBuildResults />
             </Wide>
-            <Wide title="From the project files" note="Figures and screens as the team submitted them.">
+            <Wide title={t.files.title} note={t.files.note}>
               <div className="cs-files">
                 {safebuildFiles.map((f) => (
                   <figure key={f.src} className="cs-file">
@@ -215,20 +219,20 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           </>
         )}
 
-        <Block title="What changed">
+        <Block title={t.changed}>
           <List items={project.outcome} />
         </Block>
-        <Block title="Skills in use">
+        <Block title={t.skills}>
           <p className="muted" style={{ fontSize: 'var(--step-body)', lineHeight: 1.6 }}>
             {project.skills.join(', ')}.
           </p>
         </Block>
       </div>
 
-      <Link href={`/projects/${next.slug}`} className="cs-next" data-tone="deep">
+      <Link href={localePath(locale, `/projects/${next.slug}`)} className="cs-next" data-tone="deep">
         <strong>{next.shortTitle}</strong>
         <span>
-          Next case study <Arrow />
+          {t.next} <Arrow />
         </span>
       </Link>
     </article>

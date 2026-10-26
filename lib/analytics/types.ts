@@ -68,3 +68,27 @@ export const EVENT_NAMES: EventName[] = ['pageview', 'section', 'click', 'scroll
 
 /** The most events one day keeps, so storage stays inside Upstash's free plan. */
 export const DAILY_CAP = 4000;
+
+/** How many days of events are kept. */
+export const RETAIN_DAYS = 180;
+
+export const TIME_ZONE = 'Asia/Jerusalem';
+
+const dayFormat = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE });
+
+/** The calendar day of a moment, in Israel, as YYYY-MM-DD. */
+export const dayOf = (ms: number) => dayFormat.format(new Date(ms));
+
+/** A YYYY-MM-DD day moved by whole days. */
+export function shiftDay(day: string, by: number) {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + by);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Every day from `from` to `to`, both included. */
+export function daysBetween(from: string, to: string) {
+  const out: string[] = [];
+  for (let d = from; d <= to && out.length <= RETAIN_DAYS * 2; d = shiftDay(d, 1)) out.push(d);
+  return out;
+}

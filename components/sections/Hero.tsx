@@ -1,5 +1,7 @@
 import Image from 'next/image';
-import { person, portrait, positioning } from '@/data/portfolioData';
+import { getContent } from '@/data/content';
+import { ui } from '@/data/ui';
+import { localePath, type Locale } from '@/lib/i18n';
 import { StatusCard } from '@/components/StatusCard';
 import { Arrow } from '@/components/ui/Arrow';
 
@@ -8,8 +10,9 @@ import { Arrow } from '@/components/ui/Arrow';
  * a business-card line with a small portrait; and beside it, a live project
  * status card.
  */
-export function Hero() {
-  const roles = positioning.roles;
+export function Hero({ locale }: { locale: Locale }) {
+  const { person, portrait, positioning } = getContent(locale);
+  const t = ui(locale).hero;
 
   return (
     <section className="hero" data-section="hero" aria-labelledby="hero-title" data-tone="stone">
@@ -24,12 +27,12 @@ export function Hero() {
           </h1>
           <p className="hero__sentence">{positioning.sentence}</p>
           <div className="hero__actions">
-            <a href={`mailto:${person.email}?subject=${encodeURIComponent('Hello Ran')}`} className="btn">
-              Email me
+            <a href={`mailto:${person.email}?subject=${encodeURIComponent(t.subject)}`} className="btn">
+              {t.email}
               <Arrow />
             </a>
-            <a href="#work" className="arrow-link">
-              See the case studies <Arrow />
+            <a href={localePath(locale, '/#work')} className="arrow-link">
+              {t.cases} <Arrow />
             </a>
           </div>
           <div className="byline">
@@ -38,9 +41,7 @@ export function Hero() {
             </span>
             <span>
               <span className="byline__name">{person.name}</span>
-              <span className="byline__roles">
-                {roles[0]}, {roles[1]} and {roles[2]}
-              </span>
+              <span className="byline__roles">{t.roles(positioning.roles)}</span>
             </span>
           </div>
         </div>

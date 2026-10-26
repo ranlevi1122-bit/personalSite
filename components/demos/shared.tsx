@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useLocale } from '@/components/LocaleProvider';
 
 /** How a demo is shown: worked by hand, or playing by itself as a preview. */
 export type DemoMode = 'full' | 'preview';
@@ -76,7 +77,7 @@ export function DemoWindow({
   actions,
   children,
   className = '',
-  pill = 'Sample data',
+  pill,
 }: {
   app: string;
   context?: ReactNode;
@@ -86,12 +87,13 @@ export function DemoWindow({
   /** What the content is: sample data, or the real thing. */
   pill?: string;
 }) {
+  const locale = useLocale();
   return (
     <div className={`dm ${className}`.trim()} data-demo="" data-ui="">
       <div className="dm-bar">
         <b>{app}</b>
         {context && <span className="dm-bar__context">{context}</span>}
-        <span className="dm-pill">{pill}</span>
+        <span className="dm-pill">{pill ?? (locale === 'he' ? 'נתוני דוגמה' : 'Sample data')}</span>
         <span className="dm-bar__spacer" />
         {actions}
       </div>

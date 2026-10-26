@@ -74,7 +74,7 @@ function ids() {
 export function captureSource() {
   const params = new URLSearchParams(location.search);
   const ref = params.get('ref');
-  if (ref) store.set(session(), REF, ref.toLowerCase().replace(/[^a-z0-9-_.]/g, '-').slice(0, 60));
+  if (ref) store.set(session(), REF, ref.toLowerCase().replace(/[^a-z0-9א-ת-_.]/g, '-').slice(0, 60));
   if (!store.get(session(), SRC)) {
     const utm = params.get('utm_source');
     let src = utm ?? '';

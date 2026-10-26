@@ -2,16 +2,18 @@ import type { ReactNode } from 'react';
 import { Analytics } from '@/components/Analytics';
 import { Footer } from '@/components/Footer';
 import { HideOn } from '@/components/HideOn';
+import { LocaleProvider } from '@/components/LocaleProvider';
 import { Nav } from '@/components/Nav';
+import type { Locale } from '@/lib/i18n';
 
 /**
  * Chrome shared by every route: the bar, the page, the footer, and the
- * analytics listener. The private /stats screen has its own shell, so the
- * bar and footer stay off it.
+ * analytics listener, in the page's language. The private /stats screen has
+ * its own shell, so the bar and footer stay off it.
  */
-export function SiteChrome({ children }: { children: ReactNode }) {
+export function SiteChrome({ locale, children }: { locale: Locale; children: ReactNode }) {
   return (
-    <>
+    <LocaleProvider locale={locale}>
       <HideOn prefix="/stats">
         <Nav />
       </HideOn>
@@ -20,9 +22,9 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         {children}
       </main>
       <HideOn prefix="/stats">
-        <Footer />
+        <Footer locale={locale} />
       </HideOn>
       <Analytics />
-    </>
+    </LocaleProvider>
   );
 }

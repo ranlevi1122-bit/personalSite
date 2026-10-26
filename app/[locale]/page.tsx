@@ -7,6 +7,7 @@ import { Results } from '@/components/sections/Results';
 import { Services } from '@/components/sections/Services';
 import { ToolStrip } from '@/components/sections/ToolStrip';
 import { TryIt } from '@/components/sections/TryIt';
+import type { Locale } from '@/lib/i18n';
 
 /**
  * A business page, in the order a client reads one:
@@ -21,18 +22,19 @@ import { TryIt } from '@/components/sections/TryIt';
  *  About     the person, briefly
  *  Contact   one invitation and every way to reach him
  */
-export default function HomePage() {
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const locale = (await params).locale as Locale;
   return (
     <>
-      <Hero />
-      <ToolStrip />
-      <Services />
-      <Results />
-      <TryIt />
-      <Cases />
-      <Process />
-      <About />
-      <Contact />
+      <Hero locale={locale} />
+      <ToolStrip locale={locale} />
+      <Services locale={locale} />
+      <Results locale={locale} />
+      <TryIt locale={locale} />
+      <Cases locale={locale} />
+      <Process locale={locale} />
+      <About locale={locale} />
+      <Contact locale={locale} />
     </>
   );
 }

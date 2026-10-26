@@ -1,16 +1,20 @@
-import { processSteps } from '@/data/portfolioData';
+import { getContent } from '@/data/content';
+import { ui } from '@/data/ui';
+import type { Locale } from '@/lib/i18n';
 import { Reveal, Stagger, StaggerItem } from '@/components/ui/Reveal';
 import { Lines } from '@/components/ui/Lines';
 
 /** How Ran runs a project: six steps on one line that draws itself in. */
-export function Process() {
+export function Process({ locale }: { locale: Locale }) {
+  const { processSteps } = getContent(locale);
+  const t = ui(locale).process;
   return (
     <section id="process" data-section="process" className="section" aria-labelledby="process-title" data-tone="stone">
       <div className="shell">
         <div className="grid12 sec-head">
-          <Lines id="process-title" lines={['How I run', 'a project']} />
+          <Lines id="process-title" lines={t.title} />
           <Reveal as="div" className="sec-head__note">
-            <p>The same six steps on every project, with AI doing the building in the middle of it.</p>
+            <p>{t.note}</p>
           </Reveal>
         </div>
 

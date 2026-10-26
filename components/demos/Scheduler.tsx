@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { trackDemo } from '@/lib/analytics/client';
+import { useLocale } from '@/components/LocaleProvider';
 import { DemoMessage, DemoWindow, ScaledStage, usePlaying, useTicker, type DemoMode } from './shared';
 
 /**
@@ -16,8 +17,9 @@ type Tag = 'free' | 'night' | 'arriving' | 'locked';
 
 interface Person {
   id: string;
-  name: string;
   role: Role;
+  /** Hebrew declines verbs and roles by gender. */
+  female?: true;
   tag?: Tag;
   /** Hour the person reaches base, when it is later than the first shift. */
   from?: number;
@@ -28,8 +30,7 @@ interface Person {
 }
 
 interface Shift {
-  id: string;
-  name: string;
+  id: 'gate-am' | 'patrol' | 'gate-night';
   time: string;
   start: number;
   end: number;
@@ -38,27 +39,158 @@ interface Shift {
 }
 
 const people: Person[] = [
-  { id: 'noa', name: 'Noa', role: 'Commander', tag: 'free', week: [1, 1, 0, 1, 1, 0], nights: 1 },
-  { id: 'amit', name: 'Amit', role: 'Commander', tag: 'night', week: [1, 2, 1, 1, 1, 1], nights: 3 },
-  { id: 'itay', name: 'Itay', role: 'Fighter', week: [1, 1, 1, 1, 1, 1], nights: 2 },
-  { id: 'lior', name: 'Lior', role: 'Fighter', tag: 'free', week: [0, 1, 0, 1, 1, 0], nights: 0 },
-  { id: 'dana', name: 'Dana', role: 'Fighter', tag: 'night', week: [1, 1, 2, 1, 1, 1], nights: 3 },
-  { id: 'gal', name: 'Gal', role: 'Fighter', tag: 'arriving', from: 14, week: [0, 0, 1, 1, 0, 0], nights: 1 },
-  { id: 'omer', name: 'Omer', role: 'Fighter', tag: 'locked', week: [0, 0, 0, 0, 0, 0], nights: 0 },
+  { id: 'noa', role: 'Commander', female: true, tag: 'free', week: [1, 1, 0, 1, 1, 0], nights: 1 },
+  { id: 'amit', role: 'Commander', tag: 'night', week: [1, 2, 1, 1, 1, 1], nights: 3 },
+  { id: 'itay', role: 'Fighter', week: [1, 1, 1, 1, 1, 1], nights: 2 },
+  { id: 'lior', role: 'Fighter', tag: 'free', week: [0, 1, 0, 1, 1, 0], nights: 0 },
+  { id: 'dana', role: 'Fighter', female: true, tag: 'night', week: [1, 1, 2, 1, 1, 1], nights: 3 },
+  { id: 'gal', role: 'Fighter', tag: 'arriving', from: 14, week: [0, 0, 1, 1, 0, 0], nights: 1 },
+  { id: 'omer', role: 'Fighter', tag: 'locked', week: [0, 0, 0, 0, 0, 0], nights: 0 },
 ];
 
 const shifts: Shift[] = [
-  { id: 'gate-am', name: 'Gate', time: '06:00–14:00', start: 6, end: 14, seats: ['Commander', 'Fighter'] },
-  { id: 'patrol', name: 'Patrol', time: '14:00–22:00', start: 14, end: 22, seats: ['Commander', 'Fighter'] },
-  { id: 'gate-night', name: 'Night gate', time: '22:00–06:00', start: 22, end: 30, night: true, seats: ['Fighter', 'Fighter'] },
+  { id: 'gate-am', time: '06:00–14:00', start: 6, end: 14, seats: ['Commander', 'Fighter'] },
+  { id: 'patrol', time: '14:00–22:00', start: 14, end: 22, seats: ['Commander', 'Fighter'] },
+  { id: 'gate-night', time: '22:00–06:00', start: 22, end: 30, night: true, seats: ['Fighter', 'Fighter'] },
 ];
 
-const tagText: Record<Tag, string> = {
-  free: 'Off duty yesterday',
-  night: 'Night shift yesterday',
-  arriving: 'On base from 14:00',
-  locked: 'Not on base yet',
+const questions = ['busiest', 'open', 'tips'] as const;
+type Question = (typeof questions)[number];
+
+/** Keeps a time range reading left to right inside a Hebrew sentence. */
+const ltr = (s: string) => `⁦${s}⁩`;
+
+const en = {
+  app: 'Company scheduler',
+  day: 'Thursday',
+  name: { noa: 'Noa', amit: 'Amit', itay: 'Itay', lior: 'Lior', dana: 'Dana', gal: 'Gal', omer: 'Omer' } as Record<string, string>,
+  role: (r: Role, _female?: boolean) => r as string,
+  shift: { 'gate-am': 'Gate', patrol: 'Patrol', 'gate-night': 'Night gate' } as Record<Shift['id'], string>,
+  time: (s: string) => s,
+  tag: {
+    free: 'Off duty yesterday',
+    night: 'Night shift yesterday',
+    arriving: 'On base from 14:00',
+    locked: 'Not on base yet',
+  } as Record<Tag, string>,
+  locked: (n: string, _f?: boolean) => `${n} is not on base yet, so the card is locked.`,
+  late: (n: string, shift: string, time: string, _f?: boolean) => `${n} reaches base at 14:00, too late for the ${time} ${shift.toLowerCase()}.`,
+  already: (n: string) => `${n} is already on this shift.`,
+  full: (shift: string, time: string) => `${shift} ${time} is already full.`,
+  needs: (seat: string, n: string, role: string, _f?: boolean) => `That seat needs a ${seat}; ${n} is a ${role}.`,
+  straight: (n: string, a: string, b: string, _f?: boolean) => `${n} goes straight between ${a} and ${b}: sixteen hours in a row.`,
+  twoNights: (n: string, _f?: boolean) => `${n} stood the night shift yesterday; this makes two nights running.`,
+  manyNights: (n: string, k: number, _f?: boolean) => `${n} reaches ${k} nights this week; more than three is flagged.`,
+  placed: (n: string, shift: string, time: string, _f?: boolean) => `${n} placed on ${shift}, ${time}.`,
+  removed: (n: string, _f?: boolean) => `${n} taken off the shift.`,
+  noneLeft: 'No one left who passes the checks for the open seats.',
+  staffed: (t: string) => `Board staffed in ${t}. By hand, one cycle took about half a day.`,
+  picked: (n: string, _f?: boolean) => `${n} picked. Choose a shift, or drag the card onto one.`,
+  pickFirst: 'Pick a person first, or drag a card onto the shift.',
+  intro: 'Drag a person onto a shift, or pick one and then a seat. Click a name on a shift to take it off.',
+  filling: 'Filling the board by the rules.',
+  peopleLabel: 'People · one more on leave, not shown',
+  onShifts: (k: number) => (k === 1 ? 'On 1 shift' : `On ${k} shifts`),
+  staffedState: 'Staffed',
+  of: (a: number, b: number) => `${a} of ${b}`,
+  takeOff: (n: string, role: string) => `${n}, ${role}. Take off this shift`,
+  openSeat: (role: string, shift: string, time: string) => `Open ${role} seat on ${shift} ${time}`,
+  place: (n: string) => `Place ${n}`,
+  open: 'Open',
+  suggested: 'Suggested',
+  seatsStaffed: (a: number, b: number) => `${a} of ${b} seats staffed`,
+  timeSpent: 'Time spent',
+  fill: 'Fill the board',
+  clear: 'Clear',
+  panel: 'Panel',
+  fair: 'Fairness table',
+  fairNote: 'Last seven days, today included',
+  cols: ['Name', 'Shifts by day', 'Nights', 'Rest'],
+  byDay: (d: string) => `Shifts by day: ${d}`,
+  over3: 'over 3',
+  restNote: 'Rest is out of 100 against the busiest person: 100 is fully rested.',
+  assistant: 'Assistant',
+  assistantNote: 'Questions about this board',
+  question: { busiest: 'Who is busiest?', open: 'What is still open?', tips: 'Any recommendations?' } as Record<Question, string>,
+  askPrompt: 'Ask one of the questions above.',
+  modelNote: 'In the real system a Gemini model answers these. Here the answers are worked out from the board you see.',
+  busiest: (top: string, n: number, k: number, second: string, m: number) =>
+    `${top}: ${n} shifts in seven days, ${k} of them nights. Then ${second} with ${m}.`,
+  nothingOpen: 'Nothing. Every seat on the board is staffed.',
+  openList: (n: number, total: number, list: string[]) => `${n} of ${total} seats: ${list.join('; ')}.`,
+  idle: (names: string[], _f?: boolean) => `${names.join(' and ')} had no duty yesterday; place them first.`,
+  secondNight: (n: string, _f?: boolean) => `${n} is on a second night running; swap if anyone else fits.`,
+  galFits: 'Gal reaches base at 14:00: a fit for patrol or the night gate.',
+  balanced: 'The board looks balanced: no one is on two shifts back to back or a second night running.',
 };
+
+const g = (f: boolean | undefined, m: string, w: string) => (f ? w : m);
+
+const he: typeof en = {
+  app: 'שיבוץ פלוגתי',
+  day: 'יום חמישי',
+  name: { noa: 'נועה', amit: 'עמית', itay: 'איתי', lior: 'ליאור', dana: 'דנה', gal: 'גל', omer: 'עומר' },
+  role: (r, f) => (r === 'Commander' ? g(f, 'מפקד', 'מפקדת') : g(f, 'לוחם', 'לוחמת')),
+  shift: { 'gate-am': 'שער', patrol: 'סיור', 'gate-night': 'שער לילה' },
+  time: ltr,
+  tag: {
+    free: 'בלי תורנות אתמול',
+    night: 'משמרת לילה אתמול',
+    arriving: 'בבסיס מ-14:00',
+    locked: 'עדיין לא בבסיס',
+  },
+  locked: (n, f) => `${n} עדיין לא ${g(f, 'הגיע', 'הגיעה')} לבסיס, ולכן הכרטיס נעול.`,
+  late: (n, shift, time, f) => `${n} ${g(f, 'מגיע', 'מגיעה')} לבסיס ב-14:00, מאוחר מדי ל${shift} של ${time}.`,
+  already: (n) => `${n} כבר במשמרת הזו.`,
+  full: (shift, time) => `${shift} ${time} כבר מלאה.`,
+  needs: (seat, n, role, f) => `המקום הזה דורש ${seat}, ו${n} ${g(f, 'הוא', 'היא')} ${role}.`,
+  straight: (n, a, b, f) => `${n} ${g(f, 'עובר', 'עוברת')} ישר מ${a} ל${b}: שש עשרה שעות ברצף.`,
+  twoNights: (n, f) => `${n} ${g(f, 'עמד', 'עמדה')} במשמרת לילה אתמול; זה יהיה לילה שני ברציפות.`,
+  manyNights: (n, k, f) => `${n} ${g(f, 'מגיע', 'מגיעה')} ל-${k} לילות השבוע; יותר משלושה מסומן.`,
+  placed: (n, shift, time, f) => `${n} ${g(f, 'שובץ', 'שובצה')} ל${shift}, ${time}.`,
+  removed: (n, f) => `${n} ${g(f, 'הורד', 'הורדה')} מהמשמרת.`,
+  noneLeft: 'לא נשאר אף אחד שעובר את הבדיקות למקומות הפתוחים.',
+  staffed: (t) => `הלוח אויש תוך ${t}. ביד, סבב אחד לקח בערך חצי יום.`,
+  picked: (n, f) => `${n} ${g(f, 'נבחר', 'נבחרה')}. בחרו משמרת, או גררו את הכרטיס אליה.`,
+  pickFirst: 'קודם בוחרים אדם, או גוררים כרטיס אל המשמרת.',
+  intro: 'גררו אדם אל משמרת, או בחרו אדם ואז מקום. לחיצה על שם במשמרת מורידה אותו ממנה.',
+  filling: 'ממלא את הלוח לפי הכללים.',
+  peopleLabel: 'אנשים · עוד אחד בחופשה, לא מוצג',
+  onShifts: (k) => (k === 1 ? 'במשמרת אחת' : `ב-${k} משמרות`),
+  staffedState: 'מאויש',
+  of: (a, b) => `${a} מתוך ${b}`,
+  takeOff: (n, role) => `${n}, ${role}. הורדה מהמשמרת`,
+  openSeat: (role, shift, time) => `מקום פנוי ל${role} ב${shift} ${time}`,
+  place: (n) => `לשבץ את ${n}`,
+  open: 'פנוי',
+  suggested: 'הצעות',
+  seatsStaffed: (a, b) => `${a} מתוך ${b} מקומות מאוישים`,
+  timeSpent: 'זמן שעבר',
+  fill: 'מילוי הלוח',
+  clear: 'ניקוי',
+  panel: 'חלונית',
+  fair: 'טבלת הוגנות',
+  fairNote: 'שבעת הימים האחרונים, כולל היום',
+  cols: ['שם', 'משמרות לפי יום', 'לילות', 'מנוחה'],
+  byDay: (d) => `משמרות לפי יום: ${d}`,
+  over3: 'מעל 3',
+  restNote: 'המנוחה היא מתוך 100, ביחס לעמוס ביותר: 100 זו מנוחה מלאה.',
+  assistant: 'עוזר',
+  assistantNote: 'שאלות על הלוח הזה',
+  question: { busiest: 'מי הכי עמוס?', open: 'מה עדיין פתוח?', tips: 'יש המלצות?' },
+  askPrompt: 'שאלו את אחת השאלות למעלה.',
+  modelNote: 'במערכת האמיתית מודל Gemini עונה על השאלות. כאן התשובות מחושבות מהלוח שמולכם.',
+  busiest: (top, n, k, second, m) => `${top}: ${n} משמרות בשבעה ימים, ${k} מהן לילות. במקום השני ${second}, עם ${m}.`,
+  nothingOpen: 'שום דבר. כל המקומות בלוח מאוישים.',
+  openList: (n, total, list) => `${n} מתוך ${total} מקומות: ${list.join('; ')}.`,
+  idle: (names, f) =>
+    `כדאי לשבץ קודם את ${names.join(' ואת ')}: אתמול לא הייתה ${names.length > 1 ? 'להם' : g(f, 'לו', 'לה')} תורנות.`,
+  secondNight: (n, f) => `${n} ${g(f, 'נמצא', 'נמצאת')} בלילה שני ברציפות; כדאי להחליף אם מישהו אחר מתאים.`,
+  galFits: 'גל מגיע לבסיס ב-14:00 ומתאים לסיור או לשער הלילה.',
+  balanced: 'הלוח מאוזן: אף אחד לא בשתי משמרות רצופות או בלילה שני ברציפות.',
+};
+
+type Text = typeof en;
 
 /** Hard seats first, so the commanders are not used up on fighter seats. */
 const fillOrder = [
@@ -96,28 +228,29 @@ interface Check {
 }
 
 /** Whether a person can take a shift, and which seat; a seat index forces one. */
-function check(board: Board, p: Person, s: Shift, seatIndex?: number): Check {
-  if (p.tag === 'locked') return { error: `${p.name} is not on base yet, so the card is locked.` };
-  if (p.from && s.start < p.from) return { error: `${p.name} reaches base at 14:00, too late for the ${s.time} ${s.name.toLowerCase()}.` };
-  if (s.seats.some((_, i) => board[seatId(s.id, i)] === p.id)) return { error: `${p.name} is already on this shift.` };
+function check(T: Text, board: Board, p: Person, s: Shift, seatIndex?: number): Check {
+  const name = T.name[p.id];
+  const f = p.female;
+  if (p.tag === 'locked') return { error: T.locked(name, f) };
+  if (p.from && s.start < p.from) return { error: T.late(name, T.shift[s.id], T.time(s.time), f) };
+  if (s.seats.some((_, i) => board[seatId(s.id, i)] === p.id)) return { error: T.already(name) };
 
   const open = s.seats.map((role, i) => ({ role, i })).filter(({ i }) => !board[seatId(s.id, i)]);
-  if (!open.length) return { error: `${s.name} ${s.time} is already full.` };
+  if (!open.length) return { error: T.full(T.shift[s.id], T.time(s.time)) };
 
   const candidates = seatIndex === undefined ? open : open.filter(({ i }) => i === seatIndex);
   const fits = (role: Role) => role === p.role || (role === 'Fighter' && p.role === 'Commander');
   const seat = candidates.find(({ role }) => role === p.role) ?? candidates.find(({ role }) => fits(role));
   if (!seat) {
     const needed = candidates[0]?.role ?? open[0].role;
-    return { error: `That seat needs a ${needed}; ${p.name} is a ${p.role}.` };
+    return { error: T.needs(T.role(needed), name, T.role(p.role, f), f) };
   }
 
   let warn: string | undefined;
   const nextTo = shiftsOf(board, p.id).find((o) => o.end === s.start || s.end === o.start);
-  if (nextTo) warn = `${p.name} goes straight between ${nextTo.name} and ${s.name}: sixteen hours in a row.`;
-  else if (s.night && p.tag === 'night') warn = `${p.name} stood the night shift yesterday; this makes two nights running.`;
-  else if (s.night && nightsOf(board, p) + 1 > 3)
-    warn = `${p.name} reaches ${nightsOf(board, p) + 1} nights this week; more than three is flagged.`;
+  if (nextTo) warn = T.straight(name, T.shift[nextTo.id], T.shift[s.id], f);
+  else if (s.night && p.tag === 'night') warn = T.twoNights(name, f);
+  else if (s.night && nightsOf(board, p) + 1 > 3) warn = T.manyNights(name, nightsOf(board, p) + 1, f);
 
   return { seat: seatId(s.id, seat.i), warn };
 }
@@ -128,7 +261,7 @@ function check(board: Board, p: Person, s: Shift, seatIndex?: number): Check {
  */
 function ranked(board: Board, s: Shift, seatIndex: number) {
   return people
-    .map((p) => ({ p, c: check(board, p, s, seatIndex) }))
+    .map((p) => ({ p, c: check(en, board, p, s, seatIndex) }))
     .filter(({ c }) => c.seat)
     .map(({ p, c }) => ({
       p,
@@ -164,36 +297,33 @@ const clock = (ms: number) => {
 /*  the board.                                                                 */
 /* -------------------------------------------------------------------------- */
 
-const questions = ['Who is busiest?', 'What is still open?', 'Any recommendations?'] as const;
-type Question = (typeof questions)[number];
-
-function answer(board: Board, q: Question): string {
+function answer(T: Text, board: Board, q: Question): string {
   const onBase = people.filter((p) => p.tag !== 'locked');
-  if (q === 'Who is busiest?') {
+  if (q === 'busiest') {
     const sorted = [...onBase].sort((a, b) => load(board, b) - load(board, a));
     const [top, second] = sorted;
-    return `${top.name}: ${load(board, top)} shifts in seven days, ${nightsOf(board, top)} of them nights. Then ${second.name} with ${load(board, second)}.`;
+    return T.busiest(T.name[top.id], load(board, top), nightsOf(board, top), T.name[second.id], load(board, second));
   }
-  if (q === 'What is still open?') {
+  if (q === 'open') {
     const open = shifts.flatMap((s) =>
-      s.seats.flatMap((role, i) => (board[seatId(s.id, i)] ? [] : [`${s.name} ${s.time}, ${role}`])),
+      s.seats.flatMap((role, i) => (board[seatId(s.id, i)] ? [] : [`${T.shift[s.id]} ${T.time(s.time)}, ${T.role(role)}`])),
     );
-    if (!open.length) return 'Nothing. Every seat on the board is staffed.';
-    return `${open.length} of ${TOTAL} seats: ${open.join('; ')}.`;
+    if (!open.length) return T.nothingOpen;
+    return T.openList(open.length, TOTAL, open);
   }
   const tips: string[] = [];
   const idle = people.filter((p) => p.tag === 'free' && !todayCount(board, p.id));
-  if (idle.length) tips.push(`${idle.map((p) => p.name).join(' and ')} had no duty yesterday; place them first.`);
+  if (idle.length) tips.push(T.idle(idle.map((p) => T.name[p.id]), idle[0].female));
   for (const s of shifts) {
     s.seats.forEach((_, i) => {
       const id = board[seatId(s.id, i)];
       const p = id ? personById(id) : null;
-      if (p && s.night && p.tag === 'night') tips.push(`${p.name} is on a second night running; swap if anyone else fits.`);
+      if (p && s.night && p.tag === 'night') tips.push(T.secondNight(T.name[p.id], p.female));
     });
   }
   const gal = personById('gal');
-  if (!todayCount(board, gal.id) && filled(board) < TOTAL) tips.push('Gal reaches base at 14:00: a fit for patrol or the night gate.');
-  if (!tips.length) return 'The board looks balanced: no one is on two shifts back to back or a second night running.';
+  if (!todayCount(board, gal.id) && filled(board) < TOTAL) tips.push(T.galFits);
+  if (!tips.length) return T.balanced;
   return tips.slice(0, 2).join(' ');
 }
 
@@ -201,6 +331,7 @@ function answer(board: Board, q: Question): string {
 
 export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
   const preview = mode === 'preview';
+  const T = useLocale() === 'he' ? he : en;
   const [board, setBoard] = useState<Board>(emptyBoard);
   const [selected, setSelected] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ tone: 'ok' | 'warn' | 'stop' | 'info'; text: string } | null>(null);
@@ -216,6 +347,7 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
   const dragged = useRef<string | null>(null);
 
   const count = filled(board);
+  const nameOf = (id: string) => T.name[id];
 
   const start = useCallback(() => {
     setStartedAt((t) => t ?? Date.now());
@@ -227,15 +359,15 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
       setFresh(seat);
       const p = personById(personId);
       const s = shiftById(seat.split(':')[0]);
-      setMsg(warn ? { tone: 'warn', text: warn } : { tone: 'ok', text: `${p.name} placed on ${s.name}, ${s.time}.` });
+      setMsg(warn ? { tone: 'warn', text: warn } : { tone: 'ok', text: T.placed(T.name[p.id], T.shift[s.id], T.time(s.time), p.female) });
     },
-    [],
+    [T],
   );
 
   const place = useCallback(
     (personId: string, shiftId: string, seatIndex?: number) => {
       const p = personById(personId);
-      const result = check(board, p, shiftById(shiftId), seatIndex);
+      const result = check(T, board, p, shiftById(shiftId), seatIndex);
       if (!result.seat) {
         setMsg({ tone: 'stop', text: result.error! });
         if (!preview) trackDemo('scheduler: blocked by a check');
@@ -246,14 +378,14 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
       setSelected(null);
       if (!preview) trackDemo('scheduler: placed a person');
     },
-    [board, commit, preview, start],
+    [T, board, commit, preview, start],
   );
 
   const remove = (seat: string) => {
     const id = board[seat];
     if (!id) return;
     setBoard({ ...board, [seat]: null });
-    setMsg({ tone: 'info', text: `${personById(id).name} taken off the shift.` });
+    setMsg({ tone: 'info', text: T.removed(nameOf(id), personById(id).female) });
     setDoneIn(null);
   };
 
@@ -272,7 +404,7 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
     const next = nextAutoSeat(board);
     if (!next) {
       setFilling(false);
-      if (filled(board) < TOTAL) setMsg({ tone: 'warn', text: 'No one left who passes the checks for the open seats.' });
+      if (filled(board) < TOTAL) setMsg({ tone: 'warn', text: T.noneLeft });
       return;
     }
     commit({ ...board, [next.seat]: next.person }, next.seat, next.person);
@@ -290,10 +422,10 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
       const took = Date.now() - startedAt;
       setDoneIn(took);
       setFilling(false);
-      setMsg({ tone: 'ok', text: `Board staffed in ${clock(took)}. By hand, one cycle took about half a day.` });
+      setMsg({ tone: 'ok', text: T.staffed(clock(took)) });
       if (!preview) trackDemo('scheduler: board staffed');
     }
-  }, [count, startedAt, doneIn, preview]);
+  }, [T, count, startedAt, doneIn, preview]);
 
   /* The assistant's answer types out. */
   useEffect(() => {
@@ -349,7 +481,7 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
   const layout = (below: ReactNode) => (
     <div className="dm-sched" data-selecting={selected ? '' : undefined}>
       <div className="dm-sched__people">
-        <p className="dm-label">People · one more on leave, not shown</p>
+        <p className="dm-label">{T.peopleLabel}</p>
         <ul>
           {people.map((p) => {
             const n = todayCount(board, p.id);
@@ -369,19 +501,19 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
                   }}
                   onClick={() => {
                     if (p.tag === 'locked') {
-                      setMsg({ tone: 'stop', text: `${p.name} is not on base yet, so the card is locked.` });
+                      setMsg({ tone: 'stop', text: T.locked(nameOf(p.id), p.female) });
                       return;
                     }
                     setSelected(selected === p.id ? null : p.id);
-                    setMsg({ tone: 'info', text: `${p.name} picked. Choose a shift, or drag the card onto one.` });
+                    setMsg({ tone: 'info', text: T.picked(nameOf(p.id), p.female) });
                   }}
                 >
                   <span className="dm-person__name">
-                    {p.name}
-                    {n > 0 && <span className="dm-person__count tnum">{n === 1 ? 'On 1 shift' : `On ${n} shifts`}</span>}
+                    {nameOf(p.id)}
+                    {n > 0 && <span className="dm-person__count tnum">{T.onShifts(n)}</span>}
                   </span>
-                  <span className="dm-person__role">{p.role}</span>
-                  {p.tag && <span className="dm-person__tag">{tagText[p.tag]}</span>}
+                  <span className="dm-person__role">{T.role(p.role, p.female)}</span>
+                  {p.tag && <span className="dm-person__tag">{T.tag[p.tag]}</span>}
                 </button>
               </li>
             );
@@ -397,6 +529,7 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
             const full = taken === seats.length;
             const openSeat = seats.find((x) => !x.who);
             const ideas = !preview && taken > 0 && openSeat ? ranked(board, s, openSeat.i).slice(0, 2) : [];
+            const shiftName = T.shift[s.id];
             return (
               <div
                 key={s.id}
@@ -407,9 +540,11 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
                 onDrop={(e) => onDrop(e, s.id)}
               >
                 <div className="dm-shift__head">
-                  <b>{s.name}</b>
-                  <span className="tnum">{s.time}</span>
-                  <span className="dm-shift__state">{full ? 'Staffed' : `${taken} of ${seats.length}`}</span>
+                  <b>{shiftName}</b>
+                  <span className="tnum" dir="ltr">
+                    {s.time}
+                  </span>
+                  <span className="dm-shift__state">{full ? T.staffedState : T.of(taken, seats.length)}</span>
                 </div>
                 <ul className="dm-seats">
                   {seats.map((x) => (
@@ -421,10 +556,10 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
                           data-filled=""
                           data-fresh={fresh === x.id ? '' : undefined}
                           onClick={() => remove(x.id)}
-                          aria-label={`${personById(x.who).name}, ${x.role}. Take off this shift`}
+                          aria-label={T.takeOff(nameOf(x.who), T.role(x.role))}
                         >
-                          <span className="dm-seat__role">{x.role}</span>
-                          <span className="dm-seat__who">{personById(x.who).name}</span>
+                          <span className="dm-seat__role">{T.role(x.role)}</span>
+                          <span className="dm-seat__who">{nameOf(x.who)}</span>
                           <span className="dm-seat__x" aria-hidden="true">
                             ×
                           </span>
@@ -433,15 +568,11 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
                         <button
                           type="button"
                           className="dm-seat"
-                          onClick={() =>
-                            selected
-                              ? place(selected, s.id, x.i)
-                              : setMsg({ tone: 'info', text: 'Pick a person first, or drag a card onto the shift.' })
-                          }
-                          aria-label={`Open ${x.role} seat on ${s.name} ${s.time}`}
+                          onClick={() => (selected ? place(selected, s.id, x.i) : setMsg({ tone: 'info', text: T.pickFirst }))}
+                          aria-label={T.openSeat(T.role(x.role), shiftName, T.time(s.time))}
                         >
-                          <span className="dm-seat__role">{x.role}</span>
-                          <span className="dm-seat__who">{selected ? `Place ${personById(selected).name}` : 'Open'}</span>
+                          <span className="dm-seat__role">{T.role(x.role)}</span>
+                          <span className="dm-seat__who">{selected ? T.place(nameOf(selected)) : T.open}</span>
                         </button>
                       )}
                     </li>
@@ -449,7 +580,7 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
                 </ul>
                 {ideas.length > 0 && (
                   <div className="dm-ideas">
-                    <span>Suggested</span>
+                    <span>{T.suggested}</span>
                     {ideas.map((p) => (
                       <button
                         key={p.id}
@@ -459,7 +590,7 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
                           trackDemo('scheduler: took a suggestion');
                         }}
                       >
-                        {p.name}
+                        {nameOf(p.id)}
                       </button>
                     ))}
                   </div>
@@ -475,11 +606,11 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
 
   const actions = (
     <span className="dm-bar__actions">
-      <span className="dm-meter tnum" aria-label={`${count} of ${TOTAL} seats staffed`}>
+      <span className="dm-meter tnum" aria-label={T.seatsStaffed(count, TOTAL)}>
         <i style={{ width: `${(count / TOTAL) * 56}px` }} />
-        {count} of {TOTAL}
+        {T.of(count, TOTAL)}
       </span>
-      <span className="dm-clock tnum" aria-label="Time spent">
+      <span className="dm-clock tnum" aria-label={T.timeSpent}>
         {clock(elapsed)}
       </span>
       {!preview && (
@@ -495,10 +626,10 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
               trackDemo('scheduler: fill the board');
             }}
           >
-            Fill the board
+            {T.fill}
           </button>
           <button type="button" className="dm-btn" onClick={clear} disabled={!count && !startedAt}>
-            Clear
+            {T.clear}
           </button>
         </>
       )}
@@ -509,8 +640,8 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
     return (
       <div ref={stageRef} inert>
         <ScaledStage width={800} height={600}>
-          <DemoWindow app="Company scheduler" context="Thursday" actions={actions} className="dm--preview">
-            {layout(<DemoMessage tone={msg?.tone ?? 'info'}>{msg?.text ?? 'Filling the board by the rules.'}</DemoMessage>)}
+          <DemoWindow app={T.app} context={T.day} actions={actions} className="dm--preview">
+            {layout(<DemoMessage tone={msg?.tone ?? 'info'}>{msg?.text ?? T.filling}</DemoMessage>)}
           </DemoWindow>
         </ScaledStage>
       </div>
@@ -519,45 +650,41 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
 
   const panels = (
     <>
-      {msg ? (
-        <DemoMessage tone={msg.tone}>{msg.text}</DemoMessage>
-      ) : (
-        <DemoMessage tone="info">Drag a person onto a shift, or pick one and then a seat. Click a name on a shift to take it off.</DemoMessage>
-      )}
+      {msg ? <DemoMessage tone={msg.tone}>{msg.text}</DemoMessage> : <DemoMessage tone="info">{T.intro}</DemoMessage>}
 
-      <span className="dm-seg dm-sched__tabs" role="group" aria-label="Panel">
+      <span className="dm-seg dm-sched__tabs" role="group" aria-label={T.panel}>
         <button type="button" aria-pressed={lowerTab === 'fair'} onClick={() => setLowerTab('fair')}>
-          Fairness table
+          {T.fair}
         </button>
         <button type="button" aria-pressed={lowerTab === 'ask'} onClick={() => setLowerTab('ask')}>
-          Assistant
+          {T.assistant}
         </button>
       </span>
       <div className="dm-sched__lower" data-tab={lowerTab}>
-        <section className="dm-panel" data-panel="fair" aria-label="Fairness table">
+        <section className="dm-panel" data-panel="fair" aria-label={T.fair}>
           <div className="dm-panel__head">
-            <b>Fairness table</b>
-            <span>Last seven days, today included</span>
+            <b>{T.fair}</b>
+            <span>{T.fairNote}</span>
           </div>
           <table className="dm-fair">
             <thead>
               <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Shifts by day</th>
+                <th scope="col">{T.cols[0]}</th>
+                <th scope="col">{T.cols[1]}</th>
                 <th scope="col" className="dm-num">
-                  Nights
+                  {T.cols[2]}
                 </th>
                 <th scope="col" className="dm-num">
-                  Rest
+                  {T.cols[3]}
                 </th>
               </tr>
             </thead>
             <tbody>
               {fairness.map(({ p, days, nights, rest }) => (
                 <tr key={p.id}>
-                  <th scope="row">{p.name}</th>
+                  <th scope="row">{nameOf(p.id)}</th>
                   <td>
-                    <span className="dm-days" aria-label={`Shifts by day: ${days.join(', ')}`}>
+                    <span className="dm-days" aria-label={T.byDay(days.join(', '))}>
                       {days.map((d, i) => (
                         <i key={i} data-today={i === 6 ? '' : undefined} style={{ height: `${Math.max(8, d * 50)}%` }} data-zero={d === 0 ? '' : undefined} />
                       ))}
@@ -565,20 +692,20 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
                   </td>
                   <td className="dm-num tnum" data-flag={nights > 3 ? '' : undefined}>
                     {nights}
-                    {nights > 3 && <span className="dm-flag">over 3</span>}
+                    {nights > 3 && <span className="dm-flag">{T.over3}</span>}
                   </td>
                   <td className="dm-num tnum">{rest}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <p className="dm-note">Rest is out of 100 against the busiest person: 100 is fully rested.</p>
+          <p className="dm-note">{T.restNote}</p>
         </section>
 
-        <section className="dm-panel" data-panel="ask" aria-label="Assistant">
+        <section className="dm-panel" data-panel="ask" aria-label={T.assistant}>
           <div className="dm-panel__head">
-            <b>Assistant</b>
-            <span>Questions about this board</span>
+            <b>{T.assistant}</b>
+            <span>{T.assistantNote}</span>
           </div>
           <div className="dm-asks">
             {questions.map((q) => (
@@ -587,27 +714,25 @@ export function Scheduler({ mode = 'full' }: { mode?: DemoMode }) {
                 type="button"
                 aria-pressed={asked?.q === q}
                 onClick={() => {
-                  setAsked({ q, a: answer(board, q) });
-                  trackDemo(`scheduler: asked "${q}"`);
+                  setAsked({ q, a: answer(T, board, q) });
+                  trackDemo(`scheduler: asked "${en.question[q]}"`);
                 }}
               >
-                {q}
+                {T.question[q]}
               </button>
             ))}
           </div>
           <p className="dm-answer" aria-live="polite">
-            {asked ? typed : 'Ask one of the questions above.'}
+            {asked ? typed : T.askPrompt}
           </p>
-          <p className="dm-note">
-            In the real system a Gemini model answers these. Here the answers are worked out from the board you see.
-          </p>
+          <p className="dm-note">{T.modelNote}</p>
         </section>
       </div>
     </>
   );
 
   return (
-    <DemoWindow app="Company scheduler" context="Thursday" actions={actions}>
+    <DemoWindow app={T.app} context={T.day} actions={actions}>
       {layout(panels)}
     </DemoWindow>
   );

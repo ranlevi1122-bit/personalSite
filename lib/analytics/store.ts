@@ -1,6 +1,8 @@
 import { appendFile, mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { DAILY_CAP, type StoredEvent } from './types';
+import { DAILY_CAP, RETAIN_DAYS, dayOf, type StoredEvent } from './types';
+
+export { dayOf };
 
 /**
  * Where events live.
@@ -21,17 +23,12 @@ import { DAILY_CAP, type StoredEvent } from './types';
 
 const URL = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
 const TOKEN = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-const KEEP_SECONDS = 60 * 60 * 24 * 180;
+const KEEP_SECONDS = 60 * 60 * 24 * RETAIN_DAYS;
 const FILE = path.join(process.cwd(), '.analytics', 'events.jsonl');
 
 export type StoreKind = 'redis' | 'file' | 'none';
 
 export const storeKind: StoreKind = URL && TOKEN ? 'redis' : process.env.VERCEL ? 'none' : 'file';
-
-const dayFormat = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' });
-
-/** The calendar day of a moment, in Israel, as YYYY-MM-DD. */
-export const dayOf = (ms: number) => dayFormat.format(new Date(ms));
 
 const keyFor = (day: string) => `rl:events:${day}`;
 
@@ -67,12 +64,9 @@ export async function appendEvents(events: StoredEvent[]) {
   await pipeline(commands);
 }
 
-/** Every event from the last `days` days, today included, oldest first. */
-export async function readEvents(days: number): Promise<StoredEvent[]> {
-  const now = Date.now();
-  const wanted = Array.from({ length: days }, (_, i) => dayOf(now - i * 86_400_000)).reverse();
-
-  if (storeKind === 'none') return [];
+/** Every event on the given days (YYYY-MM-DD, Israel time), one read per day, in one request. */
+export async function readEvents(wanted: string[]): Promise<StoredEvent[]> {
+  if (storeKind === 'none' || !wanted.length) return [];
 
   if (storeKind === 'file') {
     const raw = await readFile(FILE, 'utf8').catch(() => '');

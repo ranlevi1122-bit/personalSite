@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { trackDemo } from '@/lib/analytics/client';
+import { useLocale } from '@/components/LocaleProvider';
 import { DemoMessage, DemoWindow, ScaledStage, usePlaying, type DemoMode } from './shared';
 
 /**
@@ -20,24 +21,105 @@ interface Booking {
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu'];
 const slots = ['08–10', '10–12', '16–18', '18–20', '20–22'];
 const roles: Role[] = ['Member', 'Admin', 'Viewer'];
-const ME = 'You';
+const ME = 'me';
 
 const seed: Record<string, Booking> = {
-  'Sun 18–20': { who: 'Maya', status: 'ok' },
-  'Sun 20–22': { who: 'Tom', status: 'ok' },
-  'Mon 16–18': { who: 'Shira', status: 'ok' },
-  'Mon 18–20': { who: 'Yoni', status: 'ok' },
-  'Tue 10–12': { who: 'Eden', status: 'ok' },
-  'Tue 18–20': { who: 'Maya', status: 'ok' },
-  'Tue 20–22': { who: 'Roni', status: 'pending' },
-  'Wed 08–10': { who: 'Noam', status: 'ok' },
-  'Wed 20–22': { who: 'Shira', status: 'ok' },
-  'Thu 16–18': { who: 'Tom', status: 'pending' },
-  'Thu 18–20': { who: 'Eden', status: 'ok' },
+  'Sun 18–20': { who: 'maya', status: 'ok' },
+  'Sun 20–22': { who: 'tom', status: 'ok' },
+  'Mon 16–18': { who: 'shira', status: 'ok' },
+  'Mon 18–20': { who: 'yoni', status: 'ok' },
+  'Tue 10–12': { who: 'eden', status: 'ok' },
+  'Tue 18–20': { who: 'maya', status: 'ok' },
+  'Tue 20–22': { who: 'roni', status: 'pending' },
+  'Wed 08–10': { who: 'noam', status: 'ok' },
+  'Wed 20–22': { who: 'shira', status: 'ok' },
+  'Thu 16–18': { who: 'tom', status: 'pending' },
+  'Thu 18–20': { who: 'eden', status: 'ok' },
 };
 
 const key = (d: string, s: string) => `${d} ${s}`;
 const TOTAL = days.length * slots.length;
+
+const en = {
+  app: 'Facility bookings',
+  context: '49 members',
+  day: { Sun: 'Sun', Mon: 'Mon', Tue: 'Tue', Wed: 'Wed', Thu: 'Thu' } as Record<string, string>,
+  time: (s: string) => s,
+  name: { me: 'You', maya: 'Maya', tom: 'Tom', shira: 'Shira', yoni: 'Yoni', eden: 'Eden', roni: 'Roni', noam: 'Noam' } as Record<string, string>,
+  role: { Member: 'Member', Admin: 'Admin', Viewer: 'Viewer' } as Record<Role, string>,
+  viewerTaken: (slot: string, who: string) => `${slot}: booked by ${who}. Viewers can see the week but not book.`,
+  viewerFree: (slot: string) => `${slot} is free. Viewers can see the week but not book.`,
+  adminTaken: (slot: string, who: string) => `${slot}: ${who}, approved.`,
+  adminFree: (slot: string) => `${slot} is free. Members request slots; admins approve them.`,
+  requested: (slot: string) => `Requested ${slot}. It is held for you until an admin approves it.`,
+  cancelled: (slot: string) => `Your booking for ${slot} is cancelled; the slot is free again.`,
+  taken: (slot: string, who: string) => `${slot} is taken by ${who}. The platform does not allow double bookings; pick another slot.`,
+  approved: (slot: string, who: string) => `Approved: ${who}, ${slot}. The slot now counts as used.`,
+  declined: (slot: string, who: string, _mine: boolean) => `Declined ${who}'s request for ${slot}; the slot is free again.`,
+  as: {
+    Member: 'As a member: click a free slot to request it, or your own to cancel.',
+    Admin: 'As an admin: approve or decline requests, here or on the week.',
+    Viewer: 'As a viewer: the week is visible, nothing can be booked.',
+  } as Record<Role, string>,
+  signedInAs: 'Signed in as',
+  grid: 'This week’s slots',
+  cell: (slot: string, who: string | null, pending: boolean) => `${slot}: ${who ? `${who}${pending ? ', waiting for approval' : ''}` : 'free'}`,
+  pending: 'Pending',
+  request: 'Request',
+  free: 'Free',
+  requests: 'Requests',
+  waiting: (n: number) => `${n} waiting`,
+  approve: 'Approve',
+  decline: 'Decline',
+  adminApproves: 'Admin approves',
+  noRequests: 'No requests waiting.',
+  use: 'Use this week',
+  slotsOf: (a: number, b: number) => `${a} of ${b} slots`,
+  byDay: (list: string) => `Approved slots by day: ${list}`,
+  busiest: (d: string) => `Busiest day: ${d}.`,
+  intro: 'Signed in as a member. Click a free slot to request it; try one that is taken.',
+};
+
+const he: typeof en = {
+  app: 'הזמנת מתקנים',
+  context: '49 חברים',
+  day: { Sun: 'ראשון', Mon: 'שני', Tue: 'שלישי', Wed: 'רביעי', Thu: 'חמישי' },
+  /* Keeps a time range reading left to right inside a Hebrew sentence. */
+  time: (s) => `⁦${s}⁩`,
+  name: { me: 'אתם', maya: 'מאיה', tom: 'תום', shira: 'שירה', yoni: 'יוני', eden: 'עדן', roni: 'רוני', noam: 'נועם' },
+  role: { Member: 'חבר', Admin: 'מנהל', Viewer: 'צופה' },
+  viewerTaken: (slot, who) => `${slot} תפוס (${who}). צופים רואים את השבוע אבל לא מזמינים.`,
+  viewerFree: (slot) => `${slot} פנוי. צופים רואים את השבוע אבל לא מזמינים.`,
+  adminTaken: (slot, who) => `${slot}: ${who}, מאושר.`,
+  adminFree: (slot) => `${slot} פנוי. חברים מבקשים משבצות, ומנהלים מאשרים אותן.`,
+  requested: (slot) => `ביקשתם את ${slot}. המשבצת שמורה לכם עד שמנהל יאשר אותה.`,
+  cancelled: (slot) => `ההזמנה שלכם ל${slot} בוטלה, והמשבצת פנויה שוב.`,
+  taken: (slot, who) => `${slot} תפוס על ידי ${who}. הפלטפורמה לא מאפשרת הזמנה כפולה; בחרו משבצת אחרת.`,
+  approved: (slot, who) => `אושר: ${who}, ${slot}. המשבצת נספרת עכשיו כמנוצלת.`,
+  declined: (slot, who, mine) => `הבקשה ${mine ? 'שלכם' : `של ${who}`} ל${slot} נדחתה, והמשבצת פנויה שוב.`,
+  as: {
+    Member: 'בתור חבר: לחצו על משבצת פנויה כדי לבקש אותה, או על משבצת שלכם כדי לבטל.',
+    Admin: 'בתור מנהל: אשרו או דחו בקשות, כאן או על גבי השבוע.',
+    Viewer: 'בתור צופה: השבוע גלוי, ואי אפשר להזמין דבר.',
+  },
+  signedInAs: 'מחובר בתור',
+  grid: 'המשבצות של השבוע',
+  cell: (slot, who, pending) => `${slot}: ${who ? `${who}${pending ? ', ממתין לאישור' : ''}` : 'פנוי'}`,
+  pending: 'ממתין',
+  request: 'בקשה',
+  free: 'פנוי',
+  requests: 'בקשות',
+  waiting: (n) => `${n} ממתינות`,
+  approve: 'אישור',
+  decline: 'דחייה',
+  adminApproves: 'ממתין למנהל',
+  noRequests: 'אין בקשות ממתינות.',
+  use: 'ניצול השבוע',
+  slotsOf: (a, b) => `${a} מתוך ${b} משבצות`,
+  byDay: (list) => `משבצות מאושרות לפי יום: ${list}`,
+  busiest: (d) => `היום העמוס ביותר: ${d}.`,
+  intro: 'מחוברים בתור חבר. לחצו על משבצת פנויה כדי לבקש אותה; נסו גם אחת תפוסה.',
+};
 
 type Msg = { tone: 'ok' | 'warn' | 'stop' | 'info'; text: string };
 
@@ -55,6 +137,7 @@ const script: { role?: Role; slot?: string; approve?: string }[] = [
 
 export function Booking({ mode = 'full' }: { mode?: DemoMode }) {
   const preview = mode === 'preview';
+  const T = useLocale() === 'he' ? he : en;
   const [role, setRole] = useState<Role>('Member');
   const [book, setBook] = useState<Record<string, Booking>>(seed);
   const [msg, setMsg] = useState<Msg | null>(null);
@@ -65,6 +148,13 @@ export function Booking({ mode = 'full' }: { mode?: DemoMode }) {
   const perDay = days.map((d) => slots.filter((s) => book[key(d, s)]?.status === 'ok').length);
   const busiest = days[perDay.indexOf(Math.max(...perDay))];
 
+  /** A slot as the visitor reads it: "Wed 18–20", "רביעי 18–20". */
+  const label = (slot: string) => {
+    const [d, s] = slot.split(' ');
+    return `${T.day[d]} ${T.time(s)}`;
+  };
+  const who = (id: string) => T.name[id];
+
   const say = (m: Msg, at?: string) => {
     setMsg(m);
     setFlash(at ?? null);
@@ -72,18 +162,19 @@ export function Booking({ mode = 'full' }: { mode?: DemoMode }) {
 
   function pick(slot: string, as: Role = role) {
     const b = book[slot];
+    const at = label(slot);
     if (as === 'Viewer') {
-      say({ tone: 'info', text: b ? `${slot}: booked by ${b.who}. Viewers can see the week but not book.` : `${slot} is free. Viewers can see the week but not book.` }, slot);
+      say({ tone: 'info', text: b ? T.viewerTaken(at, who(b.who)) : T.viewerFree(at) }, slot);
       return;
     }
     if (as === 'Admin') {
       if (b?.status === 'pending') return approve(slot);
-      say({ tone: 'info', text: b ? `${slot}: ${b.who}, approved.` : `${slot} is free. Members request slots; admins approve them.` }, slot);
+      say({ tone: 'info', text: b ? T.adminTaken(at, who(b.who)) : T.adminFree(at) }, slot);
       return;
     }
     if (!b) {
       setBook({ ...book, [slot]: { who: ME, status: 'pending' } });
-      say({ tone: 'ok', text: `Requested ${slot}. It is held for you until an admin approves it.` }, slot);
+      say({ tone: 'ok', text: T.requested(at) }, slot);
       if (!preview) trackDemo('booking: requested a slot');
       return;
     }
@@ -91,25 +182,26 @@ export function Booking({ mode = 'full' }: { mode?: DemoMode }) {
       const next = { ...book };
       delete next[slot];
       setBook(next);
-      say({ tone: 'info', text: `Your booking for ${slot} is cancelled; the slot is free again.` }, slot);
+      say({ tone: 'info', text: T.cancelled(at) }, slot);
       return;
     }
-    say({ tone: 'stop', text: `${slot} is taken by ${b.who}. The platform does not allow double bookings; pick another slot.` }, slot);
+    say({ tone: 'stop', text: T.taken(at, who(b.who)) }, slot);
     if (!preview) trackDemo('booking: hit a conflict');
   }
 
   function approve(slot: string) {
     setBook((cur) => ({ ...cur, [slot]: { ...cur[slot], status: 'ok' } }));
-    say({ tone: 'ok', text: `Approved: ${book[slot]?.who ?? ''}, ${slot}. The slot now counts as used.` }, slot);
+    const id = book[slot]?.who;
+    say({ tone: 'ok', text: T.approved(label(slot), id ? who(id) : '') }, slot);
     if (!preview) trackDemo('booking: approved a request');
   }
 
   function decline(slot: string) {
     const next = { ...book };
-    const who = next[slot]?.who;
+    const id = next[slot]?.who ?? '';
     delete next[slot];
     setBook(next);
-    say({ tone: 'info', text: `Declined ${who}'s request for ${slot}; the slot is free again.` }, slot);
+    say({ tone: 'info', text: T.declined(label(slot), who(id), id === ME) }, slot);
     if (!preview) trackDemo('booking: declined a request');
   }
 
@@ -136,11 +228,11 @@ export function Booking({ mode = 'full' }: { mode?: DemoMode }) {
 
   const ui = (
     <DemoWindow
-      app="Facility bookings"
-      context="49 members"
+      app={T.app}
+      context={T.context}
       className={preview ? 'dm--preview' : undefined}
       actions={
-        <span className="dm-seg" role="group" aria-label="Signed in as">
+        <span className="dm-seg" role="group" aria-label={T.signedInAs}>
           {roles.map((r) => (
             <button
               key={r}
@@ -148,37 +240,29 @@ export function Booking({ mode = 'full' }: { mode?: DemoMode }) {
               aria-pressed={role === r}
               onClick={() => {
                 setRole(r);
-                say({
-                  tone: 'info',
-                  text:
-                    r === 'Member'
-                      ? 'As a member: click a free slot to request it, or your own to cancel.'
-                      : r === 'Admin'
-                        ? 'As an admin: approve or decline requests, here or on the week.'
-                        : 'As a viewer: the week is visible, nothing can be booked.',
-                });
+                say({ tone: 'info', text: T.as[r] });
                 if (!preview) trackDemo(`booking: switched to ${r}`);
               }}
             >
-              {r}
+              {T.role[r]}
             </button>
           ))}
         </span>
       }
     >
       <div className="dm-book">
-        <div className="dm-week" role="grid" aria-label="This week's slots">
+        <div className="dm-week" role="grid" aria-label={T.grid}>
           <div role="row" className="dm-week__row">
             <span role="columnheader" />
             {days.map((d) => (
               <span key={d} role="columnheader" className="dm-week__day">
-                {d}
+                {T.day[d]}
               </span>
             ))}
           </div>
           {slots.map((s) => (
             <div key={s} role="row" className="dm-week__row">
-              <span role="rowheader" className="dm-week__time tnum">
+              <span role="rowheader" className="dm-week__time tnum" dir="ltr">
                 {s}
               </span>
               {days.map((d) => {
@@ -193,15 +277,15 @@ export function Booking({ mode = 'full' }: { mode?: DemoMode }) {
                       data-mine={b?.who === ME ? '' : undefined}
                       data-flash={flash === k ? (msg?.tone ?? 'info') : undefined}
                       onClick={() => pick(k)}
-                      aria-label={`${k}: ${b ? `${b.who}${b.status === 'pending' ? ', waiting for approval' : ''}` : 'free'}`}
+                      aria-label={T.cell(label(k), b ? who(b.who) : null, b?.status === 'pending')}
                     >
                       {b ? (
                         <>
-                          <b>{b.who}</b>
-                          {b.status === 'pending' && <small>Pending</small>}
+                          <b>{who(b.who)}</b>
+                          {b.status === 'pending' && <small>{T.pending}</small>}
                         </>
                       ) : (
-                        <small className="dm-slot__free">{role === 'Member' ? 'Request' : 'Free'}</small>
+                        <small className="dm-slot__free">{role === 'Member' ? T.request : T.free}</small>
                       )}
                     </button>
                   </span>
@@ -214,60 +298,56 @@ export function Booking({ mode = 'full' }: { mode?: DemoMode }) {
         <div className="dm-book__side">
           <section className="dm-panel">
             <div className="dm-panel__head">
-              <b>Requests</b>
-              <span className="tnum">{pending.length} waiting</span>
+              <b>{T.requests}</b>
+              <span className="tnum">{T.waiting(pending.length)}</span>
             </div>
             {pending.length ? (
               <ul className="dm-queue">
                 {pending.map(([slot, b]) => (
                   <li key={slot}>
                     <span>
-                      <b>{b.who}</b> {slot}
+                      <b>{who(b.who)}</b> {label(slot)}
                     </span>
                     {role === 'Admin' ? (
                       <span className="dm-queue__acts">
                         <button type="button" className="dm-btn" data-primary="" onClick={() => approve(slot)}>
-                          Approve
+                          {T.approve}
                         </button>
                         <button type="button" className="dm-btn" onClick={() => decline(slot)}>
-                          Decline
+                          {T.decline}
                         </button>
                       </span>
                     ) : (
-                      <small>Admin approves</small>
+                      <small>{T.adminApproves}</small>
                     )}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="dm-note">No requests waiting.</p>
+              <p className="dm-note">{T.noRequests}</p>
             )}
           </section>
 
           <section className="dm-panel">
             <div className="dm-panel__head">
-              <b>Use this week</b>
-              <span className="tnum">
-                {approved} of {TOTAL} slots
-              </span>
+              <b>{T.use}</b>
+              <span className="tnum">{T.slotsOf(approved, TOTAL)}</span>
             </div>
             <p className="dm-big tnum">{Math.round((approved / TOTAL) * 100)}%</p>
-            <div className="dm-usebars" aria-label={`Approved slots by day: ${days.map((d, i) => `${d} ${perDay[i]}`).join(', ')}`}>
+            <div className="dm-usebars" aria-label={T.byDay(days.map((d, i) => `${T.day[d]} ${perDay[i]}`).join(', '))}>
               {days.map((d, i) => (
                 <span key={d} data-top={d === busiest ? '' : undefined}>
                   <i style={{ height: `${(perDay[i] / slots.length) * 100}%` }} />
-                  <small>{d}</small>
+                  <small>{T.day[d]}</small>
                 </span>
               ))}
             </div>
-            <p className="dm-note">Busiest day: {busiest}.</p>
+            <p className="dm-note">{T.busiest(T.day[busiest])}</p>
           </section>
         </div>
       </div>
       <div className="dm-msgrow">
-        <DemoMessage tone={msg?.tone ?? 'info'}>
-          {msg?.text ?? 'Signed in as a member. Click a free slot to request it; try one that is taken.'}
-        </DemoMessage>
+        <DemoMessage tone={msg?.tone ?? 'info'}>{msg?.text ?? T.intro}</DemoMessage>
       </div>
     </DemoWindow>
   );

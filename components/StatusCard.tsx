@@ -2,8 +2,11 @@
 
 import Link from 'next/link';
 import { useEffect, useState, type CSSProperties } from 'react';
-import { statusProjects } from '@/data/portfolioData';
+import { getContent } from '@/data/content';
+import { ui } from '@/data/ui';
+import { localePath } from '@/lib/i18n';
 import { Arrow } from '@/components/ui/Arrow';
+import { useLocale } from '@/components/LocaleProvider';
 
 /**
  * A project status card, the way a project manager reports: each delivered
@@ -11,6 +14,9 @@ import { Arrow } from '@/components/ui/Arrow';
  * Holds while pointed at; the dots switch projects by hand.
  */
 export function StatusCard() {
+  const locale = useLocale();
+  const { statusProjects } = getContent(locale);
+  const t = ui(locale).status;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -18,7 +24,7 @@ export function StatusCard() {
     if (paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const id = window.setTimeout(() => setIndex((i) => (i + 1) % statusProjects.length), 7000);
     return () => window.clearTimeout(id);
-  }, [index, paused]);
+  }, [index, paused, statusProjects.length]);
 
   const p = statusProjects[index];
 
@@ -31,7 +37,7 @@ export function StatusCard() {
       onBlur={() => setPaused(false)}
     >
       <div className="status__top">
-        <span>Project status</span>
+        <span>{t.label}</span>
         <span className="status__state">
           <i aria-hidden="true" />
           {p.status}
@@ -45,7 +51,7 @@ export function StatusCard() {
           <div className="status__track">
             <i />
           </div>
-          <span>{p.phases.length} of {p.phases.length} phases</span>
+          <span>{t.phases(p.phases.length)}</span>
         </div>
         <ol className="status__phases">
           {p.phases.map((phase, i) => (
@@ -56,7 +62,7 @@ export function StatusCard() {
                 </svg>
               </span>
               <span>{phase}</span>
-              <span className="status__done">Done</span>
+              <span className="status__done">{t.done}</span>
             </li>
           ))}
         </ol>
@@ -69,10 +75,10 @@ export function StatusCard() {
       </div>
 
       <div className="status__foot">
-        <Link href={p.href} className="arrow-link">
-          Read the case study <Arrow />
+        <Link href={localePath(locale, p.href)} className="arrow-link">
+          {t.read} <Arrow />
         </Link>
-        <div className="status__dots" role="group" aria-label="Choose a project">
+        <div className="status__dots" role="group" aria-label={t.choose}>
           {statusProjects.map((sp, i) => (
             <button
               key={sp.name}
