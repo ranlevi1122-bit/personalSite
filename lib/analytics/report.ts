@@ -143,7 +143,10 @@ export interface VisitRecord {
   journey: JourneyStep[];
 }
 
-const clockParts = new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, hour: 'numeric', hourCycle: 'h23', weekday: 'short' });
+/** What the live check reports about a visit that started after the dashboard opened. */
+export type LiveVisit = Pick<VisitRecord, 'sid' | 'start' | 'source' | 'ref' | 'country' | 'city' | 'device' | 'lang' | 'cases'>;
+
+const clockParts =new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, hour: 'numeric', hourCycle: 'h23', weekday: 'short' });
 const WEEKDAY_INDEX: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
 /** One record per visit, newest first, with returning visitors marked. */

@@ -81,3 +81,31 @@ export async function readEvents(wanted: string[]): Promise<StoredEvent[]> {
   const results = await pipeline(wanted.map((d) => ['LRANGE', keyFor(d), 0, -1]));
   return results.flatMap((r) => ((r.result as string[] | undefined) ?? []).map((s) => JSON.parse(s) as StoredEvent));
 }
+
+async function fileDay(day: string) {
+  const raw = await readFile(FILE, 'utf8').catch(() => '');
+  return raw
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as StoredEvent)
+    .filter((e) => dayOf(e.at) === day);
+}
+
+/**
+ * How many events a day holds: one command, for the dashboard's live check.
+ * A day's list only grows at its end, so a count is a cursor into it.
+ */
+export async function countEvents(day: string): Promise<number> {
+  if (storeKind === 'none') return 0;
+  if (storeKind === 'file') return (await fileDay(day)).length;
+  const [r] = await pipeline([['LLEN', keyFor(day)]]);
+  return Number(r.result ?? 0);
+}
+
+/** A day's events from position `start` on: only what arrived since the last look. */
+export async function readEventsFrom(day: string, start: number): Promise<StoredEvent[]> {
+  if (storeKind === 'none') return [];
+  if (storeKind === 'file') return (await fileDay(day)).slice(start);
+  const [r] = await pipeline([['LRANGE', keyFor(day), start, -1]]);
+  return ((r.result as string[] | undefined) ?? []).map((s) => JSON.parse(s) as StoredEvent);
+}

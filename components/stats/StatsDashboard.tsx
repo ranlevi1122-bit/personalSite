@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from 'react';
 import {
   CONTACT_KINDS,
   FILTER_KEYS,
@@ -14,6 +15,7 @@ import {
   type FilterKey,
   type Filters,
   type Insight,
+  type LiveVisit,
   type Ranked,
   type Summary,
   type VisitRecord,
@@ -105,6 +107,49 @@ export function StatsDashboard({
   const [counting, setCounting] = useState(false);
   const [recordDays, setRecordDays] = useState<{ from: string; to: string }>({ from: range.from, to: range.to });
   const recordsRef = useRef<HTMLElement | null>(null);
+  const router = useRouter();
+  const [, startRefresh] = useTransition();
+
+  // New visits since the dashboard opened: an alert on the page, and on the desktop when allowed.
+  const [fresh, setFresh] = useState<LiveVisit[]>([]);
+  const [highlight, setHighlight] = useState<string[]>([]);
+  const [focusKey, setFocusKey] = useState(0);
+  const freshRef = useRef(fresh);
+  freshRef.current = fresh;
+  const alerts = useDesktopAlerts();
+  const openFreshRef = useRef<() => void>(() => {});
+  const knownSids = useMemo(() => [...visits, ...prevVisits].map((v) => v.sid), [visits, prevVisits]);
+  const onNew = useCallback(
+    (news: LiveVisit[]) => {
+      setFresh((f) => [...news, ...f]);
+      alerts.notify(news, () => openFreshRef.current());
+    },
+    [alerts],
+  );
+  const live = useLiveVisits(storage !== 'none' && !failed, knownSids, onNew);
+
+  /** Loads the new visits into the page and takes the reader to them. */
+  const openFresh = () => {
+    const sids = freshRef.current.map((v) => v.sid);
+    setFresh([]);
+    setHighlight(sids);
+    if (range.to < range.today) {
+      // Dates picked by hand that end before today cannot show them: move to the last 30 days.
+      router.push(`${query({ range: 30, ...filters })}#visits`);
+      return;
+    }
+    setRecordDays({ from: range.from, to: range.to });
+    setFocusKey((k) => k + 1);
+    startRefresh(() => router.refresh());
+    recordsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  openFreshRef.current = openFresh;
+
+  // The tab's title counts the visits waiting, so they show from another tab.
+  useEffect(() => {
+    const base = document.title.replace(/^\(\d+\)\s*/, '');
+    document.title = fresh.length ? `(${fresh.length}) ${base}` : base;
+  }, [fresh.length]);
 
   // Signing in here marks this device as the owner's, so its visits are not counted.
   useEffect(() => {
@@ -190,6 +235,23 @@ export function StatsDashboard({
             </span>
           </span>
           <span className="st-top__right">
+            {live && (
+              <span className="st-live" title="Checks for new visits every 45 seconds while this page is open">
+                <i aria-hidden="true" /> Live
+              </span>
+            )}
+            {live && alerts.state !== 'unsupported' && (
+              <button
+                type="button"
+                className="st-btn st-btn--ghost"
+                onClick={alerts.toggle}
+                disabled={alerts.state === 'blocked'}
+                aria-pressed={alerts.state === 'on'}
+                title={alerts.state === 'blocked' ? 'Notifications are blocked for this site in the browser settings' : 'A desktop notification for each new visit while this tab is in the background'}
+              >
+                {alerts.state === 'on' ? 'Desktop alerts on' : alerts.state === 'blocked' ? 'Alerts blocked' : 'Desktop alerts'}
+              </button>
+            )}
             <Link href="/" className="st-link">
               View the site
             </Link>
@@ -341,8 +403,17 @@ export function StatsDashboard({
           </section>
         </div>
 
-        <section className="st-card st-visits" aria-labelledby="visits-h" ref={recordsRef}>
-          <VisitsPanel visits={filtered} range={range} days={recordDays} setDays={setRecordDays} />
+        <section className="st-card st-visits" id="visits" aria-labelledby="visits-h" ref={recordsRef}>
+          <VisitsPanel
+            visits={filtered}
+            range={range}
+            days={recordDays}
+            setDays={setRecordDays}
+            highlight={highlight}
+            focusKey={focusKey}
+            hiddenNew={highlight.filter((s) => visits.some((v) => v.sid === s) && !filtered.some((v) => v.sid === s)).length}
+            clearFilters={() => setFilters({})}
+          />
         </section>
 
         <div className="st-row st-row--main">
@@ -452,6 +523,178 @@ export function StatsDashboard({
           your own visits from this browser.
         </p>
       </main>
+
+      <FreshAlert visits={fresh} onOpen={openFresh} onDismiss={() => setFresh([])} />
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  New visits, live                                                          */
+/* -------------------------------------------------------------------------- */
+
+const POLL_VISIBLE = 45_000;
+const POLL_HIDDEN = 90_000;
+
+/**
+ * Asks the server every 45 seconds (90 in a background tab, and at once when
+ * the tab comes back) whether visits started that the page does not have yet.
+ * Returns whether live checking is running.
+ */
+function useLiveVisits(enabled: boolean, known: string[], onNew: (visits: LiveVisit[]) => void) {
+  const seen = useRef(new Set<string>());
+  const cursor = useRef<{ day: string; len: number } | null>(null);
+  const handler = useRef(onNew);
+  handler.current = onNew;
+  const [on, setOn] = useState(false);
+
+  useEffect(() => {
+    for (const s of known) seen.current.add(s);
+  }, [known]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let timer = 0;
+    let stopped = false;
+    let busy = false;
+
+    const tick = async () => {
+      if (busy || stopped) return;
+      busy = true;
+      window.clearTimeout(timer);
+      try {
+        const c = cursor.current;
+        const res = await fetch(c ? `/api/stats/live?day=${c.day}&from=${c.len}` : '/api/stats/live', { cache: 'no-store' });
+        if (res.status === 401) stopped = true;
+        if (res.ok) {
+          const data = (await res.json()) as { live: boolean; day?: string; len?: number; known?: string[]; visits?: LiveVisit[] };
+          setOn(data.live);
+          if (!data.live) stopped = true;
+          if (data.day !== undefined && data.len !== undefined) {
+            for (const s of data.known ?? []) seen.current.add(s);
+            const news = (data.visits ?? []).filter((v) => !seen.current.has(v.sid));
+            for (const v of news) seen.current.add(v.sid);
+            cursor.current = { day: data.day, len: data.len };
+            if (news.length) handler.current(news.sort((a, b) => b.start - a.start));
+          }
+        }
+      } catch {
+        // Offline for a moment: the next check catches up from the same place.
+      }
+      busy = false;
+      if (!stopped) timer = window.setTimeout(tick, document.hidden ? POLL_HIDDEN : POLL_VISIBLE);
+    };
+    const onVisible = () => {
+      if (!document.hidden) void tick();
+    };
+
+    void tick();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [enabled]);
+
+  return on;
+}
+
+const ALERTS = 'rl_alerts';
+type AlertState = 'unsupported' | 'off' | 'on' | 'blocked';
+
+/** Desktop notifications, opt-in, shown only while the dashboard's tab is in the background. */
+function useDesktopAlerts() {
+  const [state, setState] = useState<AlertState>('unsupported');
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  useEffect(() => {
+    if (!('Notification' in window)) return;
+    let wanted = false;
+    try {
+      wanted = localStorage.getItem(ALERTS) === '1';
+    } catch {
+      /* storage blocked: alerts start off */
+    }
+    setState(Notification.permission === 'denied' ? 'blocked' : Notification.permission === 'granted' && wanted ? 'on' : 'off');
+  }, []);
+
+  const remember = (on: boolean) => {
+    try {
+      localStorage.setItem(ALERTS, on ? '1' : '0');
+    } catch {
+      /* not remembered; still works for this visit */
+    }
+  };
+
+  const toggle = useCallback(async () => {
+    if (stateRef.current === 'on') {
+      remember(false);
+      setState('off');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      remember(true);
+      setState('on');
+    } else {
+      setState(permission === 'denied' ? 'blocked' : 'off');
+    }
+  }, []);
+
+  const notify = useCallback((news: LiveVisit[], open: () => void) => {
+    if (stateRef.current !== 'on' || !document.hidden) return;
+    try {
+      const n = new Notification(news.length === 1 ? 'New visit to your site' : `${news.length} new visits to your site`, {
+        body: news.slice(0, 3).map(liveLine).join('\n'),
+        tag: 'rl-visits',
+        icon: '/icon.svg',
+      });
+      n.onclick = () => {
+        window.focus();
+        open();
+        n.close();
+      };
+    } catch {
+      // Some phone browsers only notify through a service worker; the alert on the page still shows.
+    }
+  }, []);
+
+  return useMemo(() => ({ state, toggle, notify }), [state, toggle, notify]);
+}
+
+const fmtClock = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit' });
+
+/** "14:05 · Tel Aviv, Israel · LinkedIn · Phone" */
+function liveLine(v: LiveVisit) {
+  const place = [v.city, countryName(v.country)].filter((x) => x && x !== 'Unknown').join(', ') || 'Unknown place';
+  const from = v.ref ? `link “${v.ref}”` : v.source;
+  return [fmtClock.format(new Date(v.start)), place, from, v.device + (v.lang === 'Hebrew' ? ', in Hebrew' : '')].join(' · ');
+}
+
+function FreshAlert({ visits, onOpen, onDismiss }: { visits: LiveVisit[]; onOpen: () => void; onDismiss: () => void }) {
+  const n = visits.length;
+  return (
+    <div className="st-toast" role="status" aria-live="polite" data-on={n ? '' : undefined}>
+      {n > 0 && (
+        <>
+          <button type="button" className="st-toast__open" onClick={onOpen}>
+            <span className="st-toast__dot" aria-hidden="true" />
+            <span className="st-toast__text">
+              <b>{n === 1 ? 'New visit' : `${n} new visits`}</b>
+              {visits.slice(0, 3).map((v) => (
+                <small key={v.sid}>{liveLine(v)}</small>
+              ))}
+              {n > 3 && <small>and {n - 3} more</small>}
+            </span>
+            <span className="st-toast__go">Show</span>
+          </button>
+          <button type="button" className="st-toast__x" onClick={onDismiss} aria-label="Dismiss">
+            ×
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -714,17 +957,35 @@ function VisitsPanel({
   range,
   days,
   setDays,
+  highlight,
+  focusKey,
+  hiddenNew,
+  clearFilters,
 }: {
   visits: VisitRecord[];
   range: Range;
   days: { from: string; to: string };
   setDays: (d: { from: string; to: string }) => void;
+  /** Visits that arrived while the dashboard was open, marked as new. */
+  highlight: string[];
+  /** Changes when the new-visits alert is opened, to bring the newest into view. */
+  focusKey: number;
+  hiddenNew: number;
+  clearFilters: () => void;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const [sort, setSort] = useState<Sort>('newest');
   const [search, setSearch] = useState('');
   const wrap = useRef<HTMLDivElement | null>(null);
   const [maxHeight, setMaxHeight] = useState<number | undefined>(undefined);
+  const isNew = useMemo(() => new Set(highlight), [highlight]);
+
+  useEffect(() => {
+    if (!focusKey) return;
+    setSort('newest');
+    setSearch('');
+    wrap.current?.scrollTo({ top: 0 });
+  }, [focusKey]);
 
   // The panel's own dates sit inside the dashboard's; they reset when those change.
   const from = days.from < range.from || days.from > range.to ? range.from : days.from;
@@ -773,6 +1034,14 @@ function VisitsPanel({
             {nf.format(rows.length)} {rows.length === 1 ? 'visit' : 'visits'}
             {rows.length > ROWS_SHOWN ? `, ${ROWS_SHOWN} in view; scroll for the rest` : ''}. Open a row for the path through the site.
           </span>
+          {hiddenNew > 0 && (
+            <span className="st-visits__hidden">
+              {hiddenNew === 1 ? 'The new visit is' : `${hiddenNew} new visits are`} hidden by your filters.{' '}
+              <button type="button" className="st-link" onClick={clearFilters}>
+                Clear filters
+              </button>
+            </span>
+          )}
         </div>
         <div className="st-visits__tools">
           <label className="st-dates st-dates--small">
@@ -842,11 +1111,12 @@ function VisitsPanel({
                 ];
                 return (
                   <Fragment key={v.sid}>
-                    <tr className={isOpen ? 'st-visit is-open' : 'st-visit'}>
+                    <tr className={isOpen ? 'st-visit is-open' : 'st-visit'} data-new={isNew.has(v.sid) ? '' : undefined}>
                       <td>
                         <button type="button" className="st-rowbtn" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : v.sid)}>
                           {fmtWhen.format(new Date(v.start))}
                         </button>
+                        {isNew.has(v.sid) && <span className="st-tag st-tag--new">New</span>}
                         {v.returning && <span className="st-tag">Returning</span>}
                       </td>
                       <td>{v.ref ? <span className="st-tag st-tag--ref">{v.ref}</span> : v.source}</td>
