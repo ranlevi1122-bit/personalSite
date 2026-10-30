@@ -141,7 +141,7 @@ html.js .hero.is-live > .scene-stage {
   --r: 3790px;
   --card-w: 1440px;
   --zoom: 5.41;
-  --step: 22deg;
+  --step: calc(360deg / var(--n, 14));
   --dir: 1;
   position: relative;
   z-index: 1;
@@ -149,7 +149,9 @@ html.js .hero.is-live > .scene-stage {
   min-height: clamp(280px, 42vh, 460px);
   perspective: var(--persp);
   perspective-origin: 50% 18%;
-  pointer-events: none;
+  touch-action: pan-y;
+  user-select: none;
+  cursor: grab;
   animation: rise-in 1.4s var(--ease-out) both;
   animation-delay: 0.2s;
 }
@@ -230,10 +232,9 @@ html.js .hero.is-live > .scene-stage {
 @media (max-width: 767px) {
   .arc {
     --persp: 520px;
-    --r: 3380px;
-    --card-w: 1400px;
-    --zoom: 6.5;
-    --step: 27deg;
+    --r: 1160px;
+    --card-w: 480px;
+    --zoom: 2.23;
     min-height: 300px;
   }
   .hero__title {
@@ -442,4 +443,21 @@ html.js .process-scene.is-live {
 }
 :lang(he) .foot-name span {
   letter-spacing: 0;
+}
+
+/* The ring: screens outside the view are hidden; when the camera moves in, only the one in front stays. */
+.arc__spin {
+  transform: rotateY(calc(var(--start, 0) * var(--step) * var(--dir)));
+}
+.arc__card[data-far] {
+  visibility: hidden;
+}
+.arc__card {
+  transition: opacity 0.35s var(--ease-soft);
+}
+.arc[data-zoom] .arc__card:not([data-front]) {
+  opacity: 0;
+}
+.arc:active {
+  cursor: grabbing;
 }
