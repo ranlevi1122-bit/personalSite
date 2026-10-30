@@ -599,9 +599,9 @@ export const targetRoles = ['ניהול פרויקטים דיגיטליים', '�
 
 export const navLinks = [
   { href: '/#services', label: 'שירותים' },
+  { href: '/#process', label: 'תהליך' },
   { href: '/#demo', label: 'נסו בעצמכם' },
   { href: '/#work', label: 'פרויקטים' },
-  { href: '/#process', label: 'תהליך' },
   { href: '/#about', label: 'אודות' },
 ] as const;
 

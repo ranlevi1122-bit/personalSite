@@ -24,6 +24,8 @@ const en = {
     cases: 'See the case studies',
     roles: (r: readonly string[]) => `${r[0]}, ${r[1]} and ${r[2]}`,
     subject: 'Hello Ran',
+    screensLabel: 'Systems Ran delivered',
+    screenAlt: (title: string) => `${title}: a screen of the working system`,
   },
   strip: 'Tools I deliver with',
   services: {
@@ -143,6 +145,8 @@ const he: UI = {
     cases: 'לפרויקטים',
     roles: (r) => `${r[0]}, ${r[1]} ו${r[2]}`,
     subject: 'שלום רן',
+    screensLabel: 'מערכות שרן מסר',
+    screenAlt: (title) => `${title}: מסך מהמערכת העובדת`,
   },
   strip: 'הכלים שאני עובד איתם',
   services: {

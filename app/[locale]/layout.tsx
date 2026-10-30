@@ -5,6 +5,7 @@ import { getContent } from '@/data/content';
 import { dirOf, isLocale, locales, type Locale } from '@/lib/i18n';
 import { SiteChrome } from '@/components/SiteChrome';
 import '../globals.css';
+import '../scenes.css';
 
 // English: a sturdy serif with optical sizes for headlines, a clean grotesk to read.
 const display = Source_Serif_4({

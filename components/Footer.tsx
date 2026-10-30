@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getContent } from '@/data/content';
 import { ui } from '@/data/ui';
 import { localePath, type Locale } from '@/lib/i18n';
+import { FootName } from '@/components/motion/FootName';
 
 /** A compact close: the name and roles, the links, and the legal line. */
 export function Footer({ locale }: { locale: Locale }) {
@@ -49,6 +50,7 @@ export function Footer({ locale }: { locale: Locale }) {
           <span>{t.built}</span>
         </div>
       </div>
+      <FootName name={person.name} />
     </footer>
   );
 }

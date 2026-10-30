@@ -793,9 +793,9 @@ export const targetRoles = [
 
 export const navLinks = [
   { href: '/#services', label: 'Services' },
+  { href: '/#process', label: 'Process' },
   { href: '/#demo', label: 'Try it' },
   { href: '/#work', label: 'Case studies' },
-  { href: '/#process', label: 'Process' },
   { href: '/#about', label: 'About' },
 ] as const;
 

@@ -4,6 +4,7 @@ import { Footer } from '@/components/Footer';
 import { HideOn } from '@/components/HideOn';
 import { LocaleProvider } from '@/components/LocaleProvider';
 import { Nav } from '@/components/Nav';
+import { SmoothScroll } from '@/components/motion/SmoothScroll';
 import type { Locale } from '@/lib/i18n';
 
 /**
@@ -24,6 +25,7 @@ export function SiteChrome({ locale, children }: { locale: Locale; children: Rea
       <HideOn prefix="/stats">
         <Footer locale={locale} />
       </HideOn>
+      <SmoothScroll />
       <Analytics />
     </LocaleProvider>
   );
