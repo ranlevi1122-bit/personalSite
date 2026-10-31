@@ -22,7 +22,8 @@ export interface ArcScreen {
  * viewer standing inside it. The ring turns by itself one screen at a time,
  * and a finger or the mouse can swipe it round. Scrolling stops it and moves
  * the camera into the screen in front: on a desktop until it fills the view,
- * on a phone until it fills the width, so the whole screen can be read.
+ * on a phone until it fills the width, so the whole screen can be read. A
+ * swipe still turns it there, sliding along to the next screen.
  *
  * The ring is plain CSS 3D, so with no script it is the same composition,
  * standing still; with reduced motion it only moves when swiped.
@@ -71,20 +72,28 @@ export function HeroScene({
     const dir = document.documentElement.dir === 'rtl' ? -1 : 1;
     const step = 360 / cards.length;
     const persp = () => num(arc, '--persp');
+    /** How far the camera has moved in towards the front screen. */
+    const ahead = () => new DOMMatrix(getComputedStyle(ringEl).transform).m43 - persp();
 
     // The ring's turn, in degrees; screen k is in front when it equals dir * k * step.
     const state = { angle: dir * START * step };
     let atTop = true;
     let dragging = false;
 
-    /** Shows the screens that face the viewer and marks the one in front. */
+    /** Shows the screens that are wholly in front of the eye and marks the one in front. */
     const render = () => {
       gsap.set(spin, { rotationY: state.angle });
+      const r = num(arc, '--r');
+      const half = num(arc, '--card-w') / 2;
+      const inward = ahead();
       let best = 0;
       let bestOff = 360;
       cards.forEach((c, k) => {
         const off = Math.abs(((((-dir * k * step + state.angle) % 360) + 540) % 360) - 180);
-        c.style.visibility = off < 80 ? 'visible' : 'hidden';
+        const a = (off * Math.PI) / 180;
+        // The depth of the screen's far edge, measured from the eye; past zero it would be behind it.
+        const farEdge = inward - r * Math.cos(a) + half * Math.sin(a);
+        c.style.visibility = off < 90 && farEdge < 0 ? 'visible' : 'hidden';
         c.removeAttribute('data-far');
         if (off < bestOff) {
           bestOff = off;
@@ -97,7 +106,16 @@ export function HeroScene({
     let turning: gsap.core.Tween | null = null;
     const turnTo = (angle: number, duration = 0.9) => {
       turning?.kill();
-      turning = gsap.to(state, { angle, duration: reduced ? 0 : duration, ease: 'power3.inOut', onUpdate: render });
+      arc.setAttribute('data-turning', '');
+      turning = gsap.to(state, {
+        angle,
+        duration: reduced ? 0 : duration,
+        ease: 'power3.inOut',
+        onUpdate: render,
+        onComplete: () => {
+          if (!dragging) arc.removeAttribute('data-turning');
+        },
+      });
     };
 
     // It turns by itself while the page sits at its start.
@@ -114,16 +132,19 @@ export function HeroScene({
     render();
     schedule();
 
-    // A swipe or a drag turns it; letting go carries on a little, then settles on a screen.
+    // A swipe or a drag turns it, at the top of the page or zoomed in; letting
+    // go carries on a little, then settles on a screen.
     let startX = 0;
     let startAngle = 0;
     let moved = false;
     let lastX = 0;
     let lastT = 0;
     let velocity = 0;
-    const degPerPx = () => step / Math.max(120, (num(arc, '--card-w') * persp()) / num(arc, '--r'));
+    // A drag the width of the screen in front turns the ring by one screen.
+    const degPerPx = () =>
+      step / Math.max(120, (num(arc, '--card-w') * persp()) / (num(arc, '--r') - ahead()));
     const onDown = (e: PointerEvent) => {
-      if (!atTop || (e.pointerType === 'mouse' && e.button !== 0)) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
       dragging = true;
       moved = false;
       startX = lastX = e.clientX;
@@ -132,6 +153,7 @@ export function HeroScene({
       startAngle = state.angle;
       turning?.kill();
       timer?.kill();
+      arc.setAttribute('data-turning', '');
     };
     const onMove = (e: PointerEvent) => {
       if (!dragging) return;
@@ -184,6 +206,8 @@ export function HeroScene({
         .to(q('.arc__cap'), { autoAlpha: 0, duration: 0.12 }, 0.08)
         .to(arc, { y: centre, duration: 0.5, ease: 'power2.inOut' }, 0.1)
         .fromTo(ringEl, { z: persp }, { z: () => persp() + push(), duration: 1, ease: 'power2.inOut' }, 0);
+      // As the camera moves in, the screens to the sides pass behind it.
+      tl.eventCallback('onUpdate', render);
     };
     const stop = scene(el, {
       hold: 1.6,
@@ -199,8 +223,7 @@ export function HeroScene({
       onLeave: () => {
         atTop = false;
         timer?.kill();
-        dragging = false;
-        turnTo(snapped(state.angle), 0.35);
+        if (!dragging) turnTo(snapped(state.angle), 0.35);
       },
       onEnterBack: () => {
         atTop = true;
