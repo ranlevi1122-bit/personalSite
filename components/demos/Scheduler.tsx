@@ -287,6 +287,21 @@ function nextAutoSeat(board: Board) {
 
 const filled = (board: Board) => Object.values(board).filter(Boolean).length;
 
+/**
+ * The model as the opening's board shows it: who is in it, the day's shifts,
+ * the words in each language, and the seats "Fill the board" takes, in order.
+ */
+export function fillPlan(locale: 'en' | 'he') {
+  const board = emptyBoard();
+  const steps: { shift: Shift['id']; seat: number; role: Role; person: string }[] = [];
+  for (let next = nextAutoSeat(board); next; next = nextAutoSeat(board)) {
+    board[next.seat] = next.person;
+    const [shift, i] = next.seat.split(':') as [Shift['id'], string];
+    steps.push({ shift, seat: Number(i), role: shiftById(shift).seats[Number(i)], person: next.person });
+  }
+  return { people, shifts, steps, T: locale === 'he' ? he : en };
+}
+
 const clock = (ms: number) => {
   const s = Math.floor(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;

@@ -8,6 +8,7 @@ import { isLocale, localePath, locales, type Locale } from '@/lib/i18n';
 import { projects as allProjects } from '@/data/portfolioData';
 import { Reveal, Stagger, StaggerItem } from '@/components/ui/Reveal';
 import { Arrow } from '@/components/ui/Arrow';
+import { BeforeAfter } from '@/components/demos/BeforeAfter';
 import { ProjectDemo } from '@/components/demos/ProjectDemo';
 import { PlanTimeline, RiskRegister, SafeBuildResults } from '@/components/demos/SafeBuild';
 import { Walkthrough } from '@/components/demos/Walkthrough';
@@ -141,6 +142,12 @@ export default async function ProjectPage({ params }: { params: Params }) {
         <Block title={t.wrong}>
           <List items={project.problem} />
         </Block>
+
+        {project.demo === 'booking' && (
+          <Wide title={t.beforeAfter.title} note={t.beforeAfter.note}>
+            <BeforeAfter size="wide" />
+          </Wide>
+        )}
         <Block title={t.structured}>
           <List items={project.approach} />
         </Block>

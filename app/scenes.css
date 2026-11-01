@@ -134,113 +134,115 @@ html.js .hero.is-live > .scene-stage {
 }
 
 /*
- * The wall. The viewer stands at the centre of a cylinder of radius --r; the
- * ring is moved forward by the perspective distance, so the front screen sits
- * at --r from the eye and the screens to the sides come closer and larger.
- * Screens are laid out at full screen width and set far back, so the camera
- * ends on a sharp picture rather than an enlarged one; --zoom (--r over
- * --persp) brings their captions back to a readable size.
+ * The tunnel. Screens stand left and right of the camera's path, --gap apart
+ * in depth and leaning in towards it; the last one stands across the path.
+ * Live, the world comes towards the viewer as the page scrolls, and --oy
+ * carries the vanishing point from under the headline to the middle
+ * (HeroScene.tsx). At rest it is the same composition, standing still.
  */
-.arc {
-  --persp: 700px;
-  --r: 3790px;
-  --card-w: 1440px;
-  --zoom: 5.41;
-  --step: calc(360deg / var(--n, 14));
-  --dir: 1;
+.tunnel {
+  --persp: 900px;
+  --gap: 560px;
+  --tile-w: min(44vw, 620px);
+  --mouth: 79;
+  --back: 0.8;
+  --ox: 0%;
+  --oy: 50%;
   position: relative;
   z-index: 1;
   flex: 1 1 auto;
-  min-height: clamp(280px, 42vh, 460px);
+  min-height: clamp(300px, 46vh, 520px);
+  overflow: hidden;
   perspective: var(--persp);
-  perspective-origin: 50% 18%;
-  touch-action: pan-y;
-  user-select: none;
-  cursor: grab;
+  perspective-origin: calc(50% + var(--ox)) var(--oy);
   animation: rise-in 1.4s var(--ease-out) both;
   animation-delay: 0.2s;
 }
-[dir='rtl'] .arc {
-  --dir: -1;
-}
-.arc__tilt {
+html.js .hero.is-live .tunnel {
+  --oy: calc(var(--mouth) * 1%);
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 0;
-  height: 0;
-  transform-style: preserve-3d;
+  inset: 0;
+  min-height: 0;
 }
-.arc__ring,
-.arc__spin {
+.tunnel__world {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 0;
-  height: 0;
+  inset: 0;
   margin: 0;
   padding: 0;
   list-style: none;
   transform-style: preserve-3d;
 }
-.arc__ring {
-  transform: translateZ(var(--persp));
+html.js .hero.is-live .tunnel__world {
+  transform: translate3d(0, calc((var(--mouth) - 50) * 1%), calc(var(--gap) * var(--back) * -1));
 }
-.arc__card {
+.tunnel__tile {
   position: absolute;
-  width: var(--card-w);
-  left: calc(var(--card-w) / -2);
-  top: calc(var(--card-w) * -0.3125);
-  transform: rotateY(calc(var(--k) * var(--step) * -1 * var(--dir))) translateZ(calc(var(--r) * -1));
+  left: 50%;
+  top: 50%;
+  width: var(--tile-w);
+  transform: translate(-50%, -50%)
+    translate3d(calc(var(--x) * var(--tile-w)), calc(var(--y) * var(--tile-w)), calc(var(--z) * var(--gap) * -1))
+    rotateY(var(--r));
+  opacity: clamp(0, 1.5 - var(--z) * 0.22, 1);
   backface-visibility: hidden;
-  pointer-events: auto;
 }
-.arc__card a {
+.tunnel__tile a {
   display: block;
 }
-.arc__pic {
+.tunnel__pic {
   display: block;
   aspect-ratio: 16 / 10;
   overflow: hidden;
+  border-radius: calc(var(--tile-w) * 0.012);
   background: var(--surface-c);
 }
-.arc__pic img {
+.tunnel__pic img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: 0 0;
   transition: transform 0.8s var(--ease-out);
 }
-.arc__card a:hover img,
-.arc__card a:focus-visible img {
-  transform: scale(1.05);
+/* The screen the camera stops at is shown whole. */
+.tunnel__tile--end .tunnel__pic {
+  aspect-ratio: auto;
 }
-.arc__cap {
+.tunnel__tile--end .tunnel__pic img {
+  height: auto;
+}
+.tunnel__tile a:hover img,
+.tunnel__tile a:focus-visible img {
+  transform: scale(1.04);
+}
+.tunnel__cap {
   display: block;
-  margin-top: calc(12px * var(--zoom));
-  font-size: calc(var(--step-small) * var(--zoom));
+  margin-top: 0.7em;
+  font-size: max(13px, calc(var(--tile-w) * 0.026));
   color: var(--muted-c);
   transition: color 0.3s var(--ease-soft);
 }
-.arc__card a:hover .arc__cap {
+.tunnel__tile a:hover .tunnel__cap {
   color: var(--fg-c);
 }
 
 @media (max-width: 1100px) {
-  .arc {
-    --persp: 620px;
-    --r: 3000px;
-    --card-w: 1100px;
-    --zoom: 4.84;
+  .tunnel {
+    --persp: 800px;
+    --gap: 500px;
+    --tile-w: 52vw;
   }
 }
 @media (max-width: 767px) {
-  .arc {
-    --persp: 520px;
-    --r: 1160px;
-    --card-w: 480px;
-    --zoom: 2.23;
+  .tunnel {
+    --persp: 560px;
+    --gap: 380px;
+    --tile-w: 74vw;
+    --mouth: 74;
+    --back: 0;
     min-height: 300px;
+  }
+  .tunnel__cap {
+    font-size: max(13px, calc(var(--tile-w) * 0.042));
   }
   .hero__title {
     font-size: 2.5rem;
@@ -258,7 +260,7 @@ html.js .hero.is-live > .scene-stage {
   .hero__sentence,
   .hero__actions,
   .hero__byline,
-  .arc {
+  .tunnel {
     animation: none;
   }
 }
@@ -450,22 +452,432 @@ html.js .process-scene.is-live {
   letter-spacing: 0;
 }
 
-/*
- * The ring: screens outside the view are hidden; when the camera moves in,
- * only the one in front stays, and its neighbours come back while it turns.
- */
-.arc__spin {
-  transform: rotateY(calc(var(--start, 0) * var(--step) * var(--dir)));
+/* ========================================================================== */
+/*  The board fills itself (components/demos/BoardFill.tsx)                   */
+/* ========================================================================== */
+
+.fb-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(36px, 5vw, 88px);
+  align-items: center;
 }
-.arc__card[data-far] {
-  visibility: hidden;
+.fb-note {
+  margin: 24px 0 0;
+  max-width: 44ch;
 }
-.arc__card {
-  transition: opacity 0.35s var(--ease-soft);
+.fb-facts {
+  margin: 32px 0 28px;
+  display: grid;
+  gap: 8px;
 }
-.arc[data-zoom]:not([data-turning]) .arc__card:not([data-front]) {
+.fb-facts div {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 14px 18px;
+  background: var(--surface-c);
+}
+.fb-facts dt {
+  flex: none;
+  min-width: 5.4em;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.9rem;
+  line-height: 1;
+}
+.fb-facts div:first-child dt {
+  color: var(--accent-c);
+}
+.fb-facts dd {
+  margin: 0;
+  color: var(--muted-c);
+}
+.fb-side {
+  display: grid;
+  gap: 14px;
+  justify-items: end;
+}
+.fb {
+  position: relative;
+  width: 100%;
+}
+.fb__body {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+.fb__people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fb__chip {
+  display: grid;
+  gap: 1px;
+  min-width: 86px;
+  padding: 7px 11px;
+  border: 1px solid var(--dm-line); /* taste-skill-ignore: data-ui */
+  border-radius: 8px;
+  background: #fff;
+}
+.fb__chip span {
+  font-weight: 600;
+}
+.fb__chip small {
+  font-size: 11.5px;
+  color: var(--dm-muted);
+}
+.fb__chip[data-locked] {
+  border-style: dashed;
+  background: transparent;
+  opacity: 0.7;
+}
+.fb__shifts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.fb__shift {
+  padding: 12px;
+  border: 1.5px solid var(--dm-line); /* taste-skill-ignore: data-ui */
+  border-radius: 10px;
+  background: var(--dm-panel);
+  transition:
+    border-color 0.3s var(--ease-soft),
+    background-color 0.3s var(--ease-soft);
+}
+.fb__shift[data-full] {
+  border-color: var(--dm-ok);
+  background: #fff;
+}
+.fb__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin-bottom: 4px;
+}
+.fb__head span {
+  font-size: 12px;
+  color: var(--dm-muted);
+}
+.fb__seat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border: 1.5px dashed var(--dm-taupe); /* taste-skill-ignore: data-ui */
+  border-radius: 8px;
+}
+.fb__seat span {
+  font-size: 12px;
+  color: var(--dm-muted);
+}
+.fb__seat b {
+  font-weight: 600;
+  color: var(--dm-muted);
+}
+.fb__seat[data-filled] {
+  border-style: solid;
+  border-color: var(--dm-line);
+  background: #fff;
+}
+.fb__seat[data-filled] b {
+  color: var(--dm-ink);
+}
+.fb__verdict {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--dm-ok-soft);
+  color: var(--dm-ok);
+  font-weight: 600;
   opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.4s var(--ease-soft),
+    transform 0.5s var(--ease-out);
 }
-.arc:active {
-  cursor: grabbing;
+.fb__verdict[data-on] {
+  opacity: 1;
+  transform: none;
+}
+.fb-ghost {
+  position: absolute;
+  z-index: 5;
+  padding: 6px 11px;
+  border-radius: 8px;
+  background: var(--dm-accent);
+  color: #fff;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 12px 24px -12px rgba(43, 21, 23, 0.55);
+}
+.fb__again {
+  padding: 8px 16px;
+  border: 1px solid currentColor; /* taste-skill-ignore: control */
+  border-radius: 999px;
+  background: transparent;
+  color: var(--fg-c);
+  font: inherit;
+  font-size: var(--step-small);
+  cursor: pointer;
+  transition: opacity 0.3s var(--ease-soft);
+}
+.fb__again:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+@container (max-width: 560px) {
+  .fb__body {
+    padding: 12px;
+  }
+  .fb__shift {
+    padding: 8px;
+  }
+  .fb__seat {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    padding: 5px 8px;
+  }
+  .fb__chip {
+    min-width: 0;
+    padding: 6px 9px;
+  }
+}
+/* One column: the words, then the board, then its clock, so the clock runs in view. */
+@media (max-width: 900px) {
+  .fb-wrap {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .fb-copy {
+    display: contents;
+  }
+  .fb-side {
+    order: 1;
+    margin-top: 32px;
+    justify-items: stretch;
+  }
+  .fb-facts {
+    order: 2;
+    margin: 24px 0 20px;
+  }
+  .fb-link {
+    order: 3;
+    justify-self: start;
+  }
+  .fb__again {
+    justify-self: start;
+  }
+}
+
+/* ========================================================================== */
+/*  Before and after: the group chat against the platform (BeforeAfter.tsx)    */
+/* ========================================================================== */
+
+.ba {
+  --chat-bg: #0b141a;
+  --chat-bar: #1f2c34;
+  --chat-in: #202c33;
+  --chat-out: #005c4b;
+  --chat-ink: #e9edef;
+  --chat-dim: #8696a0;
+  position: relative;
+  overflow: hidden;
+  container-type: inline-size;
+  border-radius: 12px;
+  background: var(--card);
+  touch-action: pan-y;
+  user-select: none;
+  cursor: ew-resize;
+}
+.ba[data-size='card'] {
+  position: absolute;
+  inset: 0;
+}
+.ba[data-size='wide'] {
+  aspect-ratio: 2 / 1;
+}
+.ba__after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 6%;
+  background: var(--paper);
+}
+.ba__after img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: var(--shadow-float);
+  pointer-events: none;
+}
+.ba__before {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--chat-bg);
+  color: var(--chat-ink);
+  font-size: clamp(11px, 2.1cqw, 15px);
+  line-height: 1.35;
+  clip-path: inset(0 calc(100% - var(--cut)) 0 0);
+}
+[dir='rtl'] .ba__before {
+  clip-path: inset(0 0 0 calc(100% - var(--cut)));
+}
+.ba__chathead {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  padding: 0.7em 1.1em;
+  background: var(--chat-bar);
+}
+.ba__chathead b {
+  display: block;
+  font-weight: 600;
+}
+.ba__chathead small {
+  display: block;
+  font-size: 0.82em;
+  color: var(--chat-dim);
+}
+.ba__avatar {
+  flex: none;
+  width: 2.3em;
+  height: 2.3em;
+  border-radius: 50%;
+  background: #6b7c85;
+}
+/* The talk fits the half the handle rests on, so it reads whole before anyone drags. */
+.ba__chat {
+  flex: 1;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.45em;
+  padding: 1em 1.1em 1.2em;
+  overflow: hidden;
+}
+.ba__bubble {
+  position: relative;
+  align-self: flex-start;
+  max-width: 74%;
+  margin: 0;
+  padding: 0.45em 0.7em 0.5em;
+  border-radius: 0.6em;
+  background: var(--chat-in);
+}
+.ba__bubble[data-me] {
+  align-self: flex-end;
+  background: var(--chat-out);
+}
+.ba__bubble b {
+  display: block;
+  font-size: 0.85em;
+  color: #53bdeb;
+}
+.ba__bubble time {
+  margin-inline-start: 0.8em;
+  font-size: 0.72em;
+  color: var(--chat-dim);
+}
+.ba__bubble[data-me] time {
+  color: #b9dcd3;
+}
+/* The two names ride on either side of the handle. */
+.ba__label {
+  position: absolute;
+  top: 50%;
+  margin-top: 34px;
+  z-index: 2;
+  padding: 0.3em 0.75em;
+  border-radius: 999px;
+  background: rgba(20, 8, 10, 0.72);
+  color: #fff;
+  font-size: clamp(11px, 1.8cqw, 13px);
+  font-weight: 600;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease-soft);
+}
+.ba__label--before {
+  inset-inline-end: calc(100% - var(--cut) + 12px);
+  white-space: nowrap;
+}
+.ba__label--after {
+  inset-inline-start: calc(var(--cut) + 12px);
+  white-space: nowrap;
+}
+.ba__handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: var(--cut);
+  z-index: 3;
+  width: 44px;
+  margin-inline-start: -22px;
+  display: grid;
+  place-items: center;
+  outline: none;
+}
+.ba__handle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 21px;
+  width: 2px;
+  background: #f4efe9;
+  box-shadow: 0 0 0 1px rgba(43, 21, 23, 0.18);
+}
+.ba__handle span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f4efe9;
+  color: var(--maroon);
+  box-shadow: 0 8px 20px -8px rgba(43, 21, 23, 0.55);
+  transition: transform 0.3s var(--ease-out);
+}
+.ba:hover .ba__handle span,
+.ba__handle:focus-visible span {
+  transform: scale(1.08);
+}
+.ba__handle:focus-visible span {
+  outline: 2px solid var(--maroon);
+  outline-offset: 3px;
+}
+@container (max-width: 520px) {
+  .ba__before {
+    font-size: 10.5px;
+  }
+  .ba__chat {
+    width: 66%;
+    gap: 0.35em;
+    padding-bottom: 1em;
+  }
+  .ba__bubble {
+    max-width: 90%;
+  }
+}
+@media (max-width: 767px) {
+  .ba[data-size='wide'] {
+    aspect-ratio: 1 / 1;
+  }
 }

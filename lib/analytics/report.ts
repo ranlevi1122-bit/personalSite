@@ -17,11 +17,12 @@ import { TIME_ZONE, dayOf, type StoredEvent } from './types';
 /** The home page's sections in reading order, as named by data-section. */
 export const HOME_SECTIONS = [
   { id: 'hero', label: 'Hero' },
+  { id: 'board', label: 'Board fills itself' },
   { id: 'services', label: 'What I do' },
   { id: 'results', label: 'Results' },
+  { id: 'process', label: 'Process' },
   { id: 'demo', label: 'Scheduler demo' },
   { id: 'work', label: 'Case studies' },
-  { id: 'process', label: 'Process' },
   { id: 'about', label: 'About' },
   { id: 'contact', label: 'Contact' },
 ] as const;

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getContent } from '@/data/content';
 import { ui } from '@/data/ui';
 import { localePath, type Locale } from '@/lib/i18n';
+import { BeforeAfter } from '@/components/demos/BeforeAfter';
 import { ProjectDemo } from '@/components/demos/ProjectDemo';
 import { SceneSection } from '@/components/motion/SceneSection';
 import { Reveal } from '@/components/ui/Reveal';
@@ -47,8 +48,15 @@ export function Cases({ locale }: { locale: Locale }) {
               return (
                 <Reveal key={p.slug} as="li" className="case grid12">
                   <div className="case__media">
-                    <ProjectDemo kind={p.demo} mode="preview" />
-                    <Link href={href} className="case__cover" tabIndex={-1} aria-hidden="true" data-track={t.preview(p.shortTitle)} />
+                    {p.demo === 'booking' ? (
+                      // The platform shows what it replaced; the handle takes the touch here.
+                      <BeforeAfter />
+                    ) : (
+                      <>
+                        <ProjectDemo kind={p.demo} mode="preview" />
+                        <Link href={href} className="case__cover" tabIndex={-1} aria-hidden="true" data-track={t.preview(p.shortTitle)} />
+                      </>
+                    )}
                   </div>
                   <div className="case__body">
                     <h3 className="case__title">{p.shortTitle}</h3>

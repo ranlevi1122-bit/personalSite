@@ -4,10 +4,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import { Arrow } from '@/components/ui/Arrow';
-import { gsap, ScrollTrigger, scene } from '@/lib/scene';
+import { gsap, scene } from '@/lib/scene';
 import type { ProjectSlug } from '@/data/portfolioData';
 
-export interface ArcScreen {
+export interface HeroScreen {
   src: string;
   slug: ProjectSlug;
   w: number;
@@ -18,26 +18,31 @@ export interface ArcScreen {
 }
 
 /**
- * The opening scene. The headline sits over a ring of real screens, the
- * viewer standing inside it. The ring turns by itself one screen at a time,
- * and a finger or the mouse can swipe it round. Scrolling stops it and moves
- * the camera into the screen in front: on a desktop until it fills the view,
- * on a phone until it fills the width, so the whole screen can be read. A
- * swipe still turns it there, sliding along to the next screen.
+ * The opening scene. The headline stands at the mouth of a tunnel of real
+ * screens, set left and right into the distance. Scrolling is the camera:
+ * the words lift away and it flies down the tunnel, past every system, and
+ * comes to rest in front of the last screen, the scheduler, which the next
+ * section then shows at work.
  *
- * The ring is plain CSS 3D, so with no script it is the same composition,
- * standing still; with reduced motion it only moves when swiped.
+ * The tunnel is plain CSS 3D, so with no script, or with reduced motion, it
+ * is the same composition standing still under the headline.
  */
 
-/** The ring holds every screen twice, so it can turn without end. */
-const COPIES = 2;
-/** The screen in front when the page opens. */
-const START = 3;
-/** Seconds each screen stays in front before the ring turns on. */
-const HOLD_SECONDS = 2.6;
+/** Each side screen sits this many screen widths off the centre line. */
+const SIDE = 0.64;
+/** Heights of the side screens, in screen widths, in a repeating pattern. */
+const RISE = [-0.2, 0.1, -0.04, 0.16, -0.14, 0.04];
+/** The side screens lean in towards the path by this much. */
+const LEAN = 16;
+/** Screens farther than this many gaps ahead are lost in the dark. */
+const FOG = 6.5;
+// Where the camera waits while the headline is read is set in the CSS, by
+// width: --mouth, the vanishing point in % of the stage height, and --back,
+// how many gaps it stands behind the first screen.
 
-/** Read a length or angle custom property as a number. */
+/** Read a length custom property as a number. */
 const num = (el: Element, name: string) => parseFloat(getComputedStyle(el).getPropertyValue(name)) || 0;
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 export function HeroScene({
   headline,
@@ -46,6 +51,7 @@ export function HeroScene({
   cases,
   byline,
   screens,
+  last,
   screensLabel,
 }: {
   headline: readonly string[];
@@ -53,208 +59,117 @@ export function HeroScene({
   email: { href: string; label: string };
   cases: { href: string; label: string };
   byline: { name: string; roles: string; photo: string; photoAlt: string };
-  screens: ArcScreen[];
+  /** The screens passed on the way, each shown twice. */
+  screens: HeroScreen[];
+  /** The screen the camera stops in front of. */
+  last: HeroScreen;
   screensLabel: string;
 }) {
   const root = useRef<HTMLElement | null>(null);
-  const ring = Array.from({ length: COPIES }, () => screens).flat();
-  const count = ring.length;
+  const passing = [...screens, ...screens];
 
   useEffect(() => {
     const el = root.current;
     if (!el) return;
-    const arc = el.querySelector<HTMLElement>('.arc')!;
-    const ringEl = el.querySelector<HTMLElement>('.arc__ring')!;
-    const spin = el.querySelector<HTMLElement>('.arc__spin')!;
-    const tilt = el.querySelector<HTMLElement>('.arc__tilt')!;
-    const cards = [...el.querySelectorAll<HTMLElement>('.arc__card')];
+    const tunnel = el.querySelector<HTMLElement>('.tunnel')!;
+    const world = el.querySelector<HTMLElement>('.tunnel__world')!;
+    const tiles = [...el.querySelectorAll<HTMLElement>('.tunnel__tile')];
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const dir = document.documentElement.dir === 'rtl' ? -1 : 1;
-    const step = 360 / cards.length;
-    const persp = () => num(arc, '--persp');
-    /** How far the camera has moved in towards the front screen. */
-    const ahead = () => new DOMMatrix(getComputedStyle(ringEl).transform).m43 - persp();
 
-    // The ring's turn, in degrees; screen k is in front when it equals dir * k * step.
-    const state = { angle: dir * START * step };
-    let atTop = true;
-    let dragging = false;
-
-    /** Shows the screens that are wholly in front of the eye and marks the one in front. */
-    const render = () => {
-      gsap.set(spin, { rotationY: state.angle });
-      const r = num(arc, '--r');
-      const half = num(arc, '--card-w') / 2;
-      const inward = ahead();
-      let best = 0;
-      let bestOff = 360;
-      cards.forEach((c, k) => {
-        const off = Math.abs(((((-dir * k * step + state.angle) % 360) + 540) % 360) - 180);
-        const a = (off * Math.PI) / 180;
-        // The depth of the screen's far edge, measured from the eye; past zero it would be behind it.
-        const farEdge = inward - r * Math.cos(a) + half * Math.sin(a);
-        c.style.visibility = off < 90 && farEdge < 0 ? 'visible' : 'hidden';
-        c.removeAttribute('data-far');
-        if (off < bestOff) {
-          bestOff = off;
-          best = k;
-        }
-      });
-      cards.forEach((c, k) => c.toggleAttribute('data-front', k === best));
+    /** How far the camera must travel to stop with the last screen filling the view. */
+    const travel = () => {
+      const persp = num(tunnel, '--persp');
+      const gap = num(tunnel, '--gap');
+      const pic = tiles[tiles.length - 1].querySelector<HTMLElement>('.tunnel__pic')!;
+      const w = pic.offsetWidth;
+      const h = pic.offsetHeight || w * 0.625;
+      const fit = Math.min((window.innerWidth * 0.9) / w, (window.innerHeight * 0.72) / h);
+      return (tiles.length + 0.5) * gap + persp - persp / fit;
     };
-    const snapped = (a: number) => Math.round(a / step) * step;
-    let turning: gsap.core.Tween | null = null;
-    const turnTo = (angle: number, duration = 0.9) => {
-      turning?.kill();
-      arc.setAttribute('data-turning', '');
-      turning = gsap.to(state, {
-        angle,
-        duration: reduced ? 0 : duration,
-        ease: 'power3.inOut',
-        onUpdate: render,
-        onComplete: () => {
-          if (!dragging) arc.removeAttribute('data-turning');
-        },
+
+    /** Places the camera at `p` (0 to 1) of the flight and lights the screens it can see. */
+    const render = (p: number) => {
+      const persp = num(tunnel, '--persp');
+      const gap = num(tunnel, '--gap');
+      const eased = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+      const back = num(tunnel, '--back');
+      const mouth = num(tunnel, '--mouth');
+      const cam = -back * gap + (travel() + back * gap) * eased;
+      // The tunnel rises from under the headline to the middle of the screen,
+      // its vanishing point with it.
+      const rise = clamp01((p - 0.03) / 0.32);
+      const oy = mouth + (52 - mouth) * rise * rise * (3 - 2 * rise);
+      tunnel.style.setProperty('--oy', `${oy.toFixed(2)}%`);
+      world.style.transform = `translate3d(0, ${(oy - 50).toFixed(2)}%, ${cam.toFixed(1)}px)`;
+      tiles.forEach((t, k) => {
+        const end = k === tiles.length - 1;
+        const z = cam - (end ? tiles.length + 0.5 : k + 1) * gap;
+        // Out of the dark as it nears, and gone before it reaches the eye; the last one stays.
+        const far = clamp01((z + FOG * gap) / (2.2 * gap));
+        const near = end ? 1 : clamp01(1 - (z - 0.2 * persp) / (0.35 * persp));
+        const a = Math.min(far, near);
+        t.style.opacity = a.toFixed(3);
+        t.style.visibility = a > 0.01 ? 'visible' : 'hidden';
       });
     };
 
-    // It turns by itself while the page sits at its start.
-    let timer: gsap.core.Tween | null = null;
-    const schedule = () => {
-      timer?.kill();
-      timer = null;
-      if (reduced || !atTop || dragging || document.hidden) return;
-      timer = gsap.delayedCall(HOLD_SECONDS, () => {
-        turnTo(snapped(state.angle) + dir * step);
-        schedule();
-      });
-    };
-    render();
-    schedule();
-
-    // A swipe or a drag turns it, at the top of the page or zoomed in; letting
-    // go carries on a little, then settles on a screen.
-    let startX = 0;
-    let startAngle = 0;
-    let moved = false;
-    let lastX = 0;
-    let lastT = 0;
-    let velocity = 0;
-    // A drag the width of the screen in front turns the ring by one screen.
-    const degPerPx = () =>
-      step / Math.max(120, (num(arc, '--card-w') * persp()) / (num(arc, '--r') - ahead()));
-    const onDown = (e: PointerEvent) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      dragging = true;
-      moved = false;
-      startX = lastX = e.clientX;
-      lastT = performance.now();
-      velocity = 0;
-      startAngle = state.angle;
-      turning?.kill();
-      timer?.kill();
-      arc.setAttribute('data-turning', '');
-    };
-    const onMove = (e: PointerEvent) => {
-      if (!dragging) return;
-      const dx = e.clientX - startX;
-      if (Math.abs(dx) > 6) moved = true;
-      const now = performance.now();
-      velocity = (e.clientX - lastX) / Math.max(1, now - lastT);
-      lastX = e.clientX;
-      lastT = now;
-      state.angle = startAngle - dx * degPerPx();
-      render();
-    };
-    const onUp = () => {
-      if (!dragging) return;
-      dragging = false;
-      // A flick carries on, but never more than a screen and a half.
-      const fling = gsap.utils.clamp(-1.5 * step, 1.5 * step, -velocity * 120 * degPerPx());
-      turnTo(snapped(state.angle + fling), 0.7);
-      schedule();
-    };
-    // A drag is not a click on the screen it ended on.
-    const onClick = (e: MouseEvent) => {
-      if (!moved) return;
-      e.preventDefault();
-      e.stopPropagation();
-      moved = false;
-    };
-    arc.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointermove', onMove, { passive: true });
-    window.addEventListener('pointerup', onUp);
-    window.addEventListener('pointercancel', onUp);
-    arc.addEventListener('click', onClick, true);
-    const onVisibility = () => schedule();
-    document.addEventListener('visibilitychange', onVisibility);
-
-    // Scrolling stops the ring on the screen in front and moves the camera into it.
-    const build = (fit: 'cover' | 'contain') => (tl: gsap.core.Timeline, { q }: { q: (s: string) => HTMLElement[] }) => {
-      const push = () => {
-        const r = num(arc, '--r');
-        const w = num(arc, '--card-w');
-        const h = w * 0.625;
-        const scale =
-          fit === 'cover'
-            ? Math.max(window.innerWidth / w, window.innerHeight / h) * 1.04
-            : Math.min(window.innerWidth / w, window.innerHeight / h) * 0.92;
-        return r - persp() / scale;
-      };
-      const centre = () => window.innerHeight / 2 - (arc.offsetTop + arc.offsetHeight / 2);
-      tl.to(q('.hero__copy > *'), { yPercent: -40, autoAlpha: 0, stagger: 0.02, duration: 0.16, ease: 'power1.in' }, 0)
-        .to(q('.arc__cap'), { autoAlpha: 0, duration: 0.12 }, 0.08)
-        .to(arc, { y: centre, duration: 0.5, ease: 'power2.inOut' }, 0.1)
-        .fromTo(ringEl, { z: persp }, { z: () => persp() + push(), duration: 1, ease: 'power2.inOut' }, 0);
-      // As the camera moves in, the screens to the sides pass behind it.
-      tl.eventCallback('onUpdate', render);
-    };
     const stop = scene(el, {
-      hold: 1.6,
-      build: build('cover'),
-      phone: { hold: 1, build: build('contain') },
-      beats: 2,
-      onBeat: (b) => arc.toggleAttribute('data-zoom', b === 1),
-    });
-    const watch = ScrollTrigger.create({
-      trigger: el,
-      start: 'top top',
-      end: 'top+=8 top',
-      onLeave: () => {
-        atTop = false;
-        timer?.kill();
-        if (!dragging) turnTo(snapped(state.angle), 0.35);
-      },
-      onEnterBack: () => {
-        atTop = true;
-        schedule();
+      hold: 2,
+      phone: { hold: 1.6 },
+      build: (tl, { q }) => {
+        tl.to(q('.hero__copy > *'), { yPercent: -30, autoAlpha: 0, stagger: 0.02, duration: 0.14, ease: 'power1.in' }, 0);
+        tl.eventCallback('onUpdate', () => render(tl.progress()));
+        render(0);
       },
     });
 
-    // On a desktop the ring leans a little away from the pointer.
+    // On a desktop the tunnel turns a little towards the pointer.
     const fine = window.matchMedia('(pointer: fine)').matches;
-    const toX = gsap.quickTo(tilt, 'x', { duration: 0.9, ease: 'power3.out' });
-    const toY = gsap.quickTo(tilt, 'y', { duration: 0.9, ease: 'power3.out' });
-    const onLean = (e: PointerEvent) => {
-      toX((e.clientX / window.innerWidth - 0.5) * -24);
-      toY((e.clientY / window.innerHeight - 0.5) * -14);
-    };
+    const lean = { x: 0 };
+    const toX = gsap.quickTo(lean, 'x', {
+      duration: 1.1,
+      ease: 'power3.out',
+      onUpdate: () => tunnel.style.setProperty('--ox', `${lean.x.toFixed(2)}%`),
+    });
+    const onLean = (e: PointerEvent) => toX((e.clientX / window.innerWidth - 0.5) * -6);
     if (fine && !reduced) window.addEventListener('pointermove', onLean, { passive: true });
 
     return () => {
       stop();
-      watch.kill();
-      timer?.kill();
-      turning?.kill();
-      arc.removeEventListener('pointerdown', onDown);
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('pointercancel', onUp);
-      arc.removeEventListener('click', onClick, true);
-      document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pointermove', onLean);
+      world.style.removeProperty('transform');
+      tunnel.style.removeProperty('--oy');
+      tunnel.style.removeProperty('--ox');
+      tiles.forEach((t) => {
+        t.style.removeProperty('opacity');
+        t.style.removeProperty('visibility');
+      });
     };
   }, []);
+
+  const tile = (s: HeroScreen, k: number, place: { x: number; y: number; r: number; z: number }, copy: boolean, end = false) => (
+    <li
+      key={`${s.src}-${k}`}
+      className={end ? 'tunnel__tile tunnel__tile--end' : 'tunnel__tile'}
+      style={{ ['--x' as string]: place.x, ['--y' as string]: place.y, ['--r' as string]: `${place.r}deg`, ['--z' as string]: place.z }}
+      aria-hidden={copy || undefined}
+    >
+      <Link href={s.href} tabIndex={copy ? -1 : undefined} draggable={false}>
+        <span className="tunnel__pic">
+          <Image
+            src={s.src}
+            alt={copy ? '' : s.alt}
+            width={s.w}
+            height={s.h}
+            sizes={end ? '(max-width: 767px) 100vw, 90vw' : '(max-width: 767px) 80vw, 46vw'}
+            priority={k < 3}
+            draggable={false}
+          />
+        </span>
+        <span className="tunnel__cap">{s.title}</span>
+      </Link>
+    </li>
+  );
 
   return (
     <section ref={root} className="hero scene" data-section="hero" aria-labelledby="hero-title" data-tone="deep">
@@ -287,40 +202,18 @@ export function HeroScene({
           </p>
         </div>
 
-        <div className="arc" style={{ ['--n' as string]: count, ['--start' as string]: START }}>
-          <div className="arc__tilt">
-            <div className="arc__ring">
-              <ul className="arc__spin" aria-label={screensLabel}>
-                {ring.map((s, k) => {
-                  const copy = k >= screens.length;
-                  return (
-                    <li
-                      key={`${s.src}-${k}`}
-                      className="arc__card"
-                      style={{ ['--k' as string]: k }}
-                      data-far={Math.abs(k - START) > 3 ? '' : undefined}
-                      aria-hidden={copy || undefined}
-                    >
-                      <Link href={s.href} tabIndex={copy ? -1 : undefined} draggable={false}>
-                        <span className="arc__pic">
-                          <Image
-                            src={s.src}
-                            alt={copy ? '' : s.alt}
-                            width={s.w}
-                            height={s.h}
-                            sizes="(max-width: 767px) 480px, 100vw"
-                            priority={Math.abs(k - START) <= 1}
-                            draggable={false}
-                          />
-                        </span>
-                        <span className="arc__cap">{s.title}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
+        <div className="tunnel">
+          <ul className="tunnel__world" aria-label={screensLabel}>
+            {passing.map((s, k) =>
+              tile(
+                s,
+                k,
+                { x: (k % 2 ? 1 : -1) * SIDE, y: RISE[k % RISE.length], r: (k % 2 ? -1 : 1) * LEAN, z: k + 1 },
+                k >= screens.length,
+              ),
+            )}
+            {tile(last, passing.length, { x: 0, y: 0, r: 0, z: passing.length + 1.5 }, false, true)}
+          </ul>
         </div>
       </div>
     </section>

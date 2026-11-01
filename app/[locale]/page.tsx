@@ -1,4 +1,5 @@
 import { About } from '@/components/sections/About';
+import { Board } from '@/components/sections/Board';
 import { Cases } from '@/components/sections/Cases';
 import { Contact } from '@/components/sections/Contact';
 import { Hero } from '@/components/sections/Hero';
@@ -12,8 +13,9 @@ import type { Locale } from '@/lib/i18n';
 /**
  * A business page, in the order a client reads one:
  *
- *  Hero      what Ran delivers, over a curved wall of the systems' real
- *            screens; the camera moves into one of them (a scroll scene)
+ *  Hero      what Ran delivers, at the mouth of a tunnel of the systems'
+ *            real screens; the camera flies down it to the scheduler (a scene)
+ *  Board     the scheduler model staffing its board, beside the hours it saves
  *  Tools     the stack, running past
  *  Services  project management, AI implementation, AI building
  *  Results   four figures that stayed in use
@@ -30,6 +32,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <>
       <Hero locale={locale} />
+      <Board locale={locale} />
       <ToolStrip locale={locale} />
       <Services locale={locale} />
       <Results locale={locale} />
