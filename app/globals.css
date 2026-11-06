@@ -3876,14 +3876,20 @@ html,
   border-radius: 9px;
   background: var(--st-track);
 }
-.st-seg a {
+.st-seg a,
+.st-seg button {
   white-space: nowrap;
   padding: 6px 12px;
+  border: 0;
   border-radius: 7px;
+  background: transparent;
+  font: inherit;
   font-size: 14px;
   color: var(--muted-c);
+  cursor: pointer;
 }
-.st-seg a[aria-current='page'] {
+.st-seg a[aria-current='page'],
+.st-seg button[aria-pressed='true'] {
   background: var(--st-card);
   color: var(--fg-c);
   font-weight: 500;
@@ -4267,6 +4273,70 @@ html,
   }
 }
 @media (max-width: 640px) {
+  .st-controls .st-controls__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fg-c);
+    text-align: start;
+    cursor: pointer;
+  }
+  .st-controls__toggle .st-muted {
+    font-weight: 400;
+    font-size: 13px;
+  }
+  .st-controls:not([data-open]) .st-controls__body {
+    display: none;
+  }
+  .st-controls[data-open] .st-controls__body {
+    margin-top: 14px;
+  }
+  .st-title__actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .st-top__in .st-brand .st-muted {
+    display: none;
+  }
+  .st-top__in .st-brand b {
+    white-space: nowrap;
+  }
+  /* "Read to" is the first column to go on a phone; the path through the site is one tap away. */
+  .st-visits .st-table th:nth-child(4),
+  .st-visits .st-table td:nth-child(4) {
+    display: none;
+  }
+  .st-top__right {
+    gap: 10px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+  .st-visits__tools {
+    width: 100%;
+  }
+  .st-visits__tools .st-seg {
+    flex: 1 1 100%;
+  }
+  .st-visits__tools .st-seg button {
+    flex: 1 1 auto;
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  .st-visits__tools .st-select {
+    flex: 1 1 140px;
+  }
+  .st-visits__tools .st-search {
+    flex: 1 1 140px;
+    width: auto;
+  }
   .st-row--half {
     grid-template-columns: 1fr;
   }
@@ -4301,6 +4371,16 @@ html,
   .st-search {
     width: 100%;
   }
+}
+
+/* The fold-away button exists only on a phone. */
+.st-controls__toggle {
+  display: none;
+}
+.st-controls__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 /* Dates and filters: the dates reload the page, the filters work in place. */
@@ -4524,7 +4604,7 @@ html,
   cursor: pointer;
 }
 
-/* The visits list: fifteen rows in view, the rest by scrolling. */
+/* The visits list: today's visits, a few rows at a time, more on request. */
 .st-visits__head {
   flex-wrap: wrap;
   align-items: flex-end;
@@ -4542,6 +4622,8 @@ html,
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 .st-search {
   height: 32px;
@@ -4553,17 +4635,24 @@ html,
   font-size: 13px;
 }
 .st-visits .st-table-wrap {
-  overflow: auto;
-  overscroll-behavior: contain;
   border-top: 1px solid var(--st-line); /* taste-skill-ignore: app panel divider */
 }
 .st-visits .st-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
   padding-top: 10px;
-  background: var(--st-card);
-  box-shadow: 0 1px 0 var(--st-line);
+}
+.st-visits__pick {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.st-visits__more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding-top: 14px;
 }
 
 /* New visits: the live mark, the alert, and the rows it points to. */
@@ -4664,6 +4753,30 @@ html,
 }
 .st-toast__x:hover {
   color: #fff;
+}
+.st-alerts {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+.st-alerts__on {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+.st-alerts__on i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2f6b45;
+}
+.st-notice--alerts {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
 }
 .st-visit[data-new] td {
   background: #f6eedf;
