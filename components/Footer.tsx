@@ -1,20 +1,24 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { getContent } from '@/data/content';
 import { ui } from '@/data/ui';
 import { localePath, type Locale } from '@/lib/i18n';
 import { FootName } from '@/components/motion/FootName';
 
-/** A compact close: the name and roles, the links, and the legal line. */
+/** A compact close: the portrait beside the name and roles, the links, and the legal line. */
 export function Footer({ locale }: { locale: Locale }) {
-  const { navLinks, person } = getContent(locale);
+  const { navLinks, person, portrait } = getContent(locale);
   const t = ui(locale).footer;
   return (
-    <footer className="site-foot" data-tone="deep">
+    <footer className="site-foot" data-tone="stone">
       <div className="shell">
         <div className="grid12 site-foot__top">
           <div className="site-foot__brand">
-            <b>{person.name}</b>
-            <span>{t.roles}</span>
+            <Image src={portrait.src} alt="" width={56} height={56} className="site-foot__photo" />
+            <div>
+              <b>{person.name}</b>
+              <span>{t.roles}</span>
+            </div>
           </div>
           <div className="footer-col">
             <h2>{t.site}</h2>

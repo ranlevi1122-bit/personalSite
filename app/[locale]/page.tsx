@@ -1,6 +1,7 @@
 import { About } from '@/components/sections/About';
 import { Board } from '@/components/sections/Board';
 import { Cases } from '@/components/sections/Cases';
+import { ChapterIndex } from '@/components/sections/ChapterIndex';
 import { Contact } from '@/components/sections/Contact';
 import { Hero } from '@/components/sections/Hero';
 import { Process } from '@/components/sections/Process';
@@ -15,6 +16,7 @@ import type { Locale } from '@/lib/i18n';
  *
  *  Hero      what Ran delivers, at the mouth of a tunnel of the systems'
  *            real screens; the camera flies down it to the scheduler (a scene)
+ *  Chapters  the six chapters of the page, numbered, as links
  *  Board     the scheduler model staffing its board, beside the hours it saves
  *  Tools     the stack, running past
  *  Services  project management, AI implementation, AI building
@@ -32,6 +34,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <>
       <Hero locale={locale} />
+      <ChapterIndex locale={locale} />
       <Board locale={locale} />
       <ToolStrip locale={locale} />
       <Services locale={locale} />

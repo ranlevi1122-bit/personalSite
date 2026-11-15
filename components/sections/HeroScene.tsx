@@ -18,8 +18,9 @@ export interface HeroScreen {
 }
 
 /**
- * The opening scene. The headline stands at the mouth of a tunnel of real
- * screens, set left and right into the distance. Scrolling is the camera:
+ * The opening scene. The words stand in two columns, who and the headline on
+ * one side, the pitch and the actions on the other, at the mouth of a tunnel
+ * of real screens set left and right into the distance. Scrolling is the camera:
  * the words lift away and it flies down the tunnel, past every system, and
  * comes to rest in front of the last screen, the scheduler, which the next
  * section then shows at work.
@@ -175,31 +176,35 @@ export function HeroScene({
     <section ref={root} className="hero scene" data-section="hero" aria-labelledby="hero-title" data-tone="deep">
       <div className="scene-stage hero__stage">
         <div className="hero__copy shell">
-          <h1 id="hero-title" className="hero__title t-display">
-            {headline.map((line) => (
-              <span key={line} className="lm">
-                <span>{line}</span>
+          <div className="hero__lead">
+            <p className="hero__byline">
+              <span className="hero__photo">
+                <Image src={byline.photo} alt={byline.photoAlt} fill sizes="44px" priority />
               </span>
-            ))}
-          </h1>
-          <p className="hero__sentence">{sentence}</p>
-          <div className="hero__actions">
-            <a href={email.href} className="btn">
-              {email.label}
-              <Arrow />
-            </a>
-            <a href={cases.href} className="arrow-link">
-              {cases.label} <Arrow />
-            </a>
+              <span>
+                <b>{byline.name}</b> · {byline.roles}
+              </span>
+            </p>
+            <h1 id="hero-title" className="hero__title t-display">
+              {headline.map((line) => (
+                <span key={line} className="lm">
+                  <span>{line}</span>
+                </span>
+              ))}
+            </h1>
           </div>
-          <p className="hero__byline">
-            <span className="hero__photo">
-              <Image src={byline.photo} alt={byline.photoAlt} fill sizes="44px" priority />
-            </span>
-            <span>
-              <b>{byline.name}</b> · {byline.roles}
-            </span>
-          </p>
+          <div className="hero__side">
+            <p className="hero__sentence">{sentence}</p>
+            <div className="hero__actions">
+              <a href={email.href} className="btn">
+                {email.label}
+                <Arrow />
+              </a>
+              <a href={cases.href} className="arrow-link">
+                {cases.label} <Arrow />
+              </a>
+            </div>
+          </div>
         </div>
 
         <div className="tunnel">

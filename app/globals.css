@@ -261,6 +261,72 @@ html,
   }
 }
 
+/*
+ * Chapters. The page reads as six numbered chapters: each one's opening
+ * section carries its number and name over the heading, the band under the
+ * opening lists them all, and a link at a chapter's end leads on to the next.
+ */
+.chapter {
+  margin: 0 0 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 0.55em;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color: var(--accent-c);
+}
+.chapter__n::after {
+  content: '·';
+  margin-inline-start: 0.55em;
+}
+.js .reveal .chapter {
+  opacity: 0;
+  transition: opacity 0.9s var(--ease-out);
+}
+.js .reveal.is-shown .chapter {
+  opacity: 1;
+}
+
+.chapters__list {
+  list-style: none;
+  margin-block: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: var(--gap);
+}
+.chapters a {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 56px;
+  padding-block: 16px;
+  font-size: 0.9375rem;
+}
+.chapters__n {
+  font-family: var(--font-display), Georgia, serif;
+  color: var(--muted-c);
+  transition: color 0.25s var(--ease-soft);
+}
+.chapters a:hover .chapters__n,
+.chapters a:focus-visible .chapters__n {
+  color: var(--fg-c);
+}
+@media (max-width: 1000px) {
+  .chapters__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .chapters__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chapter-next {
+  margin-top: clamp(40px, 5vw, 72px);
+}
+
 /* Headings rise into place from behind their own baseline. */
 .lm {
   display: block;
@@ -380,6 +446,21 @@ html,
   box-shadow: 0 10px 30px -22px rgba(43, 21, 23, 0.45); /* taste-skill-ignore: the sticky bar floats over the page */
 }
 
+/* How far down the page the reader is, as a line along the bar's foot. */
+.read-progress {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--maroon);
+  transform: scaleX(var(--read, 0));
+  transform-origin: left;
+  pointer-events: none;
+}
+[dir='rtl'] .read-progress {
+  transform-origin: right;
+}
+
 .site-head__row {
   height: var(--nav-h);
   display: flex;
@@ -445,6 +526,15 @@ html,
 .lang-switch:hover {
   background: var(--fg-c);
   color: var(--bg-c);
+}
+/* The pill stays small; the area that takes a finger is 44px tall. */
+.lang-switch {
+  position: relative;
+}
+.lang-switch::before {
+  content: '';
+  position: absolute;
+  inset: -9px -4px;
 }
 .site-nav__compact {
   display: none;
@@ -726,47 +816,53 @@ html,
 /*  Services                                                                  */
 /* ========================================================================== */
 
+/*
+ * Three rows, read across: the role, what it covers, then the tools and the
+ * proof. A rule above each row keeps them apart; on a narrow screen a row
+ * stacks.
+ */
 .services {
   list-style: none;
   margin: 0;
   padding: 0;
-  row-gap: var(--gap);
 }
 
 .service {
-  grid-column: span 4;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: clamp(26px, 2.6vw, 40px);
-  background: var(--surface-c);
-  transition: transform 0.5s var(--ease-out), background-color 0.4s var(--ease-soft), box-shadow 0.5s var(--ease-out);
+  padding-block: clamp(28px, 3.2vw, 48px);
+  border-top: 1px solid color-mix(in srgb, var(--fg-c) 18%, transparent);
+  row-gap: 20px;
+  align-items: start;
 }
-/* On hover a service lifts off the page. */
-.service:hover {
-  transform: translateY(-6px);
-  background: var(--card);
-  box-shadow: var(--shadow-float); /* taste-skill-ignore: only while lifted */
+.service:last-child {
+  border-bottom: 1px solid color-mix(in srgb, var(--fg-c) 18%, transparent);
 }
 
 .service h3 {
+  grid-column: 1 / span 4;
   margin: 0;
   font-family: var(--font-display), Georgia, serif;
   font-weight: 500;
-  font-size: clamp(1.5rem, 1.2rem + 0.8vw, 2rem);
-  line-height: 1.15;
+  font-size: clamp(1.75rem, 1.3rem + 1.2vw, 2.5rem);
+  line-height: 1.1;
+  transition: color 0.3s var(--ease-soft);
 }
-.service > p {
-  margin: 16px 0 0;
-  color: var(--muted-c);
+.service:hover h3 {
+  color: var(--maroon);
+}
+.service__body {
+  grid-column: 5 / span 5;
+}
+.service__body > p {
+  margin: 0;
 }
 .service ul {
   list-style: none;
-  margin: 24px 0 0;
+  margin: 20px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  color: var(--muted-c);
 }
 .service ul li {
   position: relative;
@@ -781,8 +877,15 @@ html,
   height: 8px;
   background: var(--maroon);
 }
+.service__side {
+  grid-column: 10 / span 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
 .service__tools {
-  margin: 24px 0 0;
+  margin: 0;
   font-size: var(--step-small);
   color: var(--muted-c);
 }
@@ -791,7 +894,7 @@ html,
   color: var(--fg-c);
   font-weight: 500;
 }
-/* The proof under each service, underlined, with its own hover. */
+/* The proof beside each service, underlined, with its own hover. */
 .proof-link {
   font-weight: 500;
   text-decoration: underline;
@@ -804,13 +907,11 @@ html,
   color: var(--maroon);
   text-decoration-color: currentColor;
 }
-.service__proof {
-  margin-top: auto;
-  padding-top: 28px;
-}
 
 @media (max-width: 1000px) {
-  .service {
+  .service h3,
+  .service__body,
+  .service__side {
     grid-column: 1 / -1;
   }
 }
@@ -1319,6 +1420,18 @@ html,
 }
 .site-foot__brand {
   grid-column: 1 / span 5;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.site-foot__photo {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 55% 16%;
+  background: var(--surface-c);
 }
 .site-foot__brand b {
   display: block;
@@ -1433,6 +1546,22 @@ html,
 .cs-hero-ui {
   margin-top: clamp(48px, 6vw, 80px);
   padding-bottom: clamp(56px, 7vw, 96px);
+}
+
+/* The story's blocks are numbered, as the home page's chapters are. */
+[data-section='case-story'] {
+  counter-reset: block;
+}
+.cs-block h2::before,
+.cs-wide__head h2::before {
+  counter-increment: block;
+  content: counter(block, decimal-leading-zero);
+  display: block;
+  margin-bottom: 10px;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  color: var(--accent-c);
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .cs-block {
@@ -1633,6 +1762,37 @@ html,
   .cs-block__body,
   .cs-wide__head p {
     margin-top: 18px;
+  }
+}
+
+/* ========================================================================== */
+/*  Touch                                                                     */
+/*                                                                            */
+/*  On a touch screen every link and button takes a finger: at least 44px     */
+/*  tall, by padding that does not move the text around it.                   */
+/* ========================================================================== */
+
+@media (pointer: coarse) {
+  .wordmark {
+    padding-block: 10px;
+  }
+  .footer-col {
+    gap: 0;
+  }
+  .footer-col a {
+    padding-block: 9px;
+  }
+  .footer-col h2 {
+    margin-bottom: 6px;
+  }
+  .contact__details dd a,
+  .proof-link {
+    display: inline-block;
+    padding-block: 12px;
+    margin-block: -12px;
+  }
+  .fb__again {
+    min-height: 44px;
   }
 }
 
@@ -3743,11 +3903,11 @@ html,
 /* ========================================================================== */
 
 .st {
-  --st-line: #e2ddd6;
-  --st-card: #fbfaf9;
-  --st-data: #6e1d29;
-  --st-data-soft: #d9c3c3;
-  --st-track: #ece7e0;
+  --st-line: #e6dfd5;
+  --st-card: #fbfaf8;
+  --st-data: #5c1621;
+  --st-data-soft: #c9bbab;
+  --st-track: #e6dfd5;
   min-height: 100svh;
   font-size: 15px;
   line-height: 1.5;
@@ -3757,8 +3917,7 @@ html,
 }
 
 .st-top {
-  border-bottom: 1px solid var(--st-line); /* taste-skill-ignore: app shell */
-  background: var(--bg-c);
+  background: var(--stone);
 }
 .st-top__in {
   max-width: 1248px;
@@ -3809,10 +3968,10 @@ html,
 }
 
 .st-btn {
-  height: 36px;
-  padding: 0 14px;
+  height: 40px;
+  padding: 0 16px;
   border-radius: 8px;
-  background: var(--espresso);
+  background: var(--maroon);
   color: #f4efe9;
   font-weight: 500;
   font-size: 14px;
@@ -3820,7 +3979,7 @@ html,
   transition: background-color 0.2s var(--ease-soft);
 }
 .st-btn:hover {
-  background: #47282b;
+  background: var(--maroon-hi);
 }
 .st-btn:disabled {
   opacity: 0.45;
@@ -3829,7 +3988,7 @@ html,
 .st-btn--ghost {
   background: transparent;
   color: var(--fg-c);
-  border: 1px solid var(--st-line); /* taste-skill-ignore: app control */
+  border: 1px solid var(--taupe); /* taste-skill-ignore: app control */
 }
 .st-btn--ghost:hover {
   background: var(--st-track);
@@ -3855,8 +4014,8 @@ html,
   margin: 0;
   font-family: var(--font-display), Georgia, serif;
   font-weight: 600;
-  font-size: 28px;
-  line-height: 1.2;
+  font-size: 32px;
+  line-height: 1.15;
 }
 .st-title p {
   margin: 4px 0 0;
@@ -3902,30 +4061,30 @@ html,
   color: #5b3a12;
 }
 
+/* The totals are six tiles, a hair apart. */
 .st-kpis {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  border: 1px solid var(--st-line); /* taste-skill-ignore: app panel */
-  border-radius: 12px;
-  background: var(--st-card);
+  gap: 2px;
+  border-radius: 14px;
+  overflow: hidden;
 }
 .st-kpi {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 16px 18px;
-}
-.st-kpi + .st-kpi {
-  border-left: 1px solid var(--st-line); /* taste-skill-ignore: app panel divider */
+  padding: 18px 20px;
+  background: var(--st-card);
 }
 .st-kpi__label {
   font-size: 13px;
   color: var(--muted-c);
 }
 .st-kpi__value {
-  font-size: 26px;
-  font-weight: 500;
-  line-height: 1.25;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.15;
 }
 .st-kpi__note {
   font-size: 13px;
@@ -3953,10 +4112,9 @@ html,
 }
 
 .st-card {
-  border: 1px solid var(--st-line); /* taste-skill-ignore: app panel */
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--st-card);
-  padding: 18px 20px 20px;
+  padding: 22px 24px 24px;
   min-width: 0;
 }
 .st-card__head {
@@ -4100,8 +4258,8 @@ html,
 /* Visits */
 .st-table-wrap {
   overflow-x: auto;
-  margin: 0 -20px;
-  padding: 0 20px;
+  margin: 0 -24px;
+  padding: 0 24px;
 }
 .st-table {
   width: 100%;
@@ -4265,12 +4423,6 @@ html,
   .st-kpis {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .st-kpi:nth-child(4) {
-    border-left: 0;
-  }
-  .st-kpi:nth-child(n + 4) {
-    border-top: 1px solid var(--st-line); /* taste-skill-ignore: app panel divider */
-  }
 }
 @media (max-width: 640px) {
   .st-controls .st-controls__toggle {
@@ -4343,15 +4495,6 @@ html,
   .st-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .st-kpi:nth-child(odd) {
-    border-left: 0;
-  }
-  .st-kpi:nth-child(4) {
-    border-left: 1px solid var(--st-line); /* taste-skill-ignore: app panel divider */
-  }
-  .st-kpi:nth-child(n + 3) {
-    border-top: 1px solid var(--st-line); /* taste-skill-ignore: app panel divider */
-  }
   .st-builder__row {
     grid-template-columns: 1fr;
   }
@@ -4388,9 +4531,8 @@ html,
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 16px 20px;
-  border: 1px solid var(--st-line); /* taste-skill-ignore: app panel */
-  border-radius: 12px;
+  padding: 18px 24px;
+  border-radius: 14px;
   background: var(--st-card);
 }
 .st-controls__dates {
@@ -4609,6 +4751,11 @@ html,
   flex-wrap: wrap;
   align-items: flex-end;
 }
+.st-visits__head h2 {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 24px;
+  line-height: 1.2;
+}
 .st-visits__head > div:first-child {
   display: flex;
   flex-direction: column;
@@ -4807,6 +4954,19 @@ html,
 @media (min-width: 1101px) {
   .st-filters {
     grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+/* On a touch screen every control is at least 44px tall. */
+@media (pointer: coarse) {
+  .st-btn,
+  .st-seg a,
+  .st-seg button {
+    min-height: 44px;
+  }
+  .st-seg a {
+    display: inline-flex;
+    align-items: center;
   }
 }
 

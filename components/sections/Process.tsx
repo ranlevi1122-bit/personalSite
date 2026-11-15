@@ -1,5 +1,5 @@
 import { getContent } from '@/data/content';
-import { ui } from '@/data/ui';
+import { chapter, ui } from '@/data/ui';
 import type { Locale } from '@/lib/i18n';
 import { SceneSection } from '@/components/motion/SceneSection';
 import { Reveal, Stagger, StaggerItem } from '@/components/ui/Reveal';
@@ -18,7 +18,7 @@ export function Process({ locale }: { locale: Locale }) {
       <div className="scene-stage">
         <div className="shell">
           <div className="grid12 sec-head">
-            <Lines id="process-title" lines={t.title} />
+            <Lines id="process-title" lines={t.title} chapter={chapter(locale, 'process')} />
             <Reveal as="div" className="sec-head__note">
               <p>{t.note}</p>
             </Reveal>

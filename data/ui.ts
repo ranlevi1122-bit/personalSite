@@ -27,6 +27,17 @@ const en = {
     screensLabel: 'Systems Ran delivered',
     screenAlt: (title: string) => `${title}: a screen of the working system`,
   },
+  chapters: {
+    label: 'Chapters',
+    list: [
+      { id: 'board', n: '01', name: 'Proof' },
+      { id: 'services', n: '02', name: 'What I do' },
+      { id: 'process', n: '03', name: 'How I work' },
+      { id: 'work', n: '04', name: 'Case studies' },
+      { id: 'about', n: '05', name: 'About' },
+      { id: 'contact', n: '06', name: 'Contact' },
+    ],
+  },
   board: {
     title: ['The board', 'fills itself'],
     note: 'The scheduler three companies plan with, here as a working model on invented names, staffs a day of shifts by its rules while you watch.',
@@ -40,19 +51,19 @@ const en = {
   },
   strip: 'Tools I deliver with',
   services: {
-    title: ['What I do'],
-    note: 'Three roles that meet in one project: running it, bringing AI into it, and building what it needs.',
+    title: ['Three roles,', 'one project'],
+    note: 'Running it, bringing AI into it, and building what it needs.',
     tools: 'Tools',
   },
-  results: { title: ['What the work', 'delivered'] },
+  results: { title: ['What the work', 'delivered'], next: 'See how a project runs' },
   tryIt: {
     title: ['Staff the board', 'yourself'],
     note: 'A working model of the scheduler three companies plan with, on invented names. Drag people onto shifts or let it fill the board, and watch the checks catch what a planner would.',
     link: 'How the real system was delivered',
   },
   cases: {
-    title: ['Case studies'],
-    note: 'Five systems, each shown working: three replaced work people did by hand, one is a two-day R&D build, and one is my team’s capstone.',
+    title: ['Five systems,', 'each shown working'],
+    note: 'Three replaced work people did by hand, one is a two-day R&D build, and one is my team’s capstone.',
     role: 'My role:',
     open: (demo: DemoKind): string =>
       demo === 'safebuild' ? 'See the prototype and results' : demo === 'launch' ? 'See the system at work' : 'Try it in the case study',
@@ -163,6 +174,17 @@ const he: UI = {
     screensLabel: 'מערכות שרן מסר',
     screenAlt: (title) => `${title}: מסך מהמערכת העובדת`,
   },
+  chapters: {
+    label: 'פרקים',
+    list: [
+      { id: 'board', n: '01', name: 'הוכחה' },
+      { id: 'services', n: '02', name: 'מה אני עושה' },
+      { id: 'process', n: '03', name: 'איך אני עובד' },
+      { id: 'work', n: '04', name: 'פרויקטים' },
+      { id: 'about', n: '05', name: 'אודות' },
+      { id: 'contact', n: '06', name: 'יצירת קשר' },
+    ],
+  },
   board: {
     title: ['הלוח שממלא', 'את עצמו'],
     note: 'מערכת השיבוץ ששלוש פלוגות עובדות איתה, כאן כמודל עובד עם שמות בדויים, מאיישת יום שלם של משמרות לפי הכללים שלה, מול העיניים.',
@@ -176,19 +198,19 @@ const he: UI = {
   },
   strip: 'הכלים שאני עובד איתם',
   services: {
-    title: ['מה אני עושה'],
-    note: 'שלושה תפקידים שנפגשים בפרויקט אחד: לנהל אותו, להכניס אליו AI ולבנות את מה שהוא צריך.',
+    title: ['שלושה תפקידים,', 'פרויקט אחד'],
+    note: 'לנהל אותו, להכניס אליו AI ולבנות את מה שהוא צריך.',
     tools: 'כלים',
   },
-  results: { title: ['התוצאות', 'בשטח'] },
+  results: { title: ['התוצאות', 'בשטח'], next: 'איך פרויקט מתנהל אצלי' },
   tryIt: {
     title: ['שבצו את הלוח', 'בעצמכם'],
     note: 'מודל עובד של מערכת השיבוץ ששלוש פלוגות עובדות איתה, עם שמות בדויים. גררו אנשים למשמרות או תנו למערכת למלא את הלוח, ותראו איך הבדיקות עוצרות טעויות כמו שמתכנן מנוסה היה עוצר.',
     link: 'איך המערכת האמיתית נבנתה ונמסרה',
   },
   cases: {
-    title: ['פרויקטים'],
-    note: 'חמש מערכות, וכל אחת מוצגת בפעולה: שלוש החליפו עבודה ידנית, אחת היא פרויקט מו״פ של יומיים, ואחת היא פרויקט הגמר של הצוות שלי.',
+    title: ['חמש מערכות,', 'כל אחת בפעולה'],
+    note: 'שלוש החליפו עבודה ידנית, אחת היא פרויקט מו״פ של יומיים, ואחת היא פרויקט הגמר של הצוות שלי.',
     role: 'התפקיד שלי:',
     open: (demo) =>
       demo === 'safebuild' ? 'לאב הטיפוס ולתוצאות' : demo === 'launch' ? 'לראות את המערכת בעבודה' : 'לנסות בעמוד הפרויקט',
@@ -278,3 +300,6 @@ const he: UI = {
 };
 
 export const ui = (locale: Locale): UI => (locale === 'he' ? he : en);
+
+/** The number and name of a chapter, by the id of the section that opens it. */
+export const chapter = (locale: Locale, id: string) => ui(locale).chapters.list.find((c) => c.id === id);

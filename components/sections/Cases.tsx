@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getContent } from '@/data/content';
-import { ui } from '@/data/ui';
+import { chapter, ui } from '@/data/ui';
 import { localePath, type Locale } from '@/lib/i18n';
 import { BeforeAfter } from '@/components/demos/BeforeAfter';
 import { ProjectDemo } from '@/components/demos/ProjectDemo';
@@ -23,7 +23,7 @@ export function Cases({ locale }: { locale: Locale }) {
       <div className="scene-stage">
         <div className="shell work__inner">
           <div className="grid12 sec-head work__head">
-            <Lines id="work-title" lines={t.title} />
+            <Lines id="work-title" lines={t.title} chapter={chapter(locale, 'work')} />
             <Reveal as="div" className="sec-head__note">
               <p>{t.note}</p>
             </Reveal>

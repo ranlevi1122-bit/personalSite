@@ -1,5 +1,5 @@
 import { getContent } from '@/data/content';
-import { ui } from '@/data/ui';
+import { chapter, ui } from '@/data/ui';
 import type { Locale } from '@/lib/i18n';
 import { Reveal } from '@/components/ui/Reveal';
 import { Lines } from '@/components/ui/Lines';
@@ -12,10 +12,10 @@ export function Contact({ locale }: { locale: Locale }) {
   const subject = encodeURIComponent(ui(locale).hero.subject);
 
   return (
-    <section id="contact" data-section="contact" className="section" aria-labelledby="contact-title" data-tone="dark">
+    <section id="contact" data-section="contact" className="section" aria-labelledby="contact-title" data-tone="deep">
       <div className="shell grid12 contact__inner">
         <div className="contact__text">
-          <Lines id="contact-title" lines={t.title} />
+          <Lines id="contact-title" lines={t.title} chapter={chapter(locale, 'contact')} />
           <Reveal>
             <p>{t.body}</p>
             <div className="contact__actions">

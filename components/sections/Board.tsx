@@ -1,4 +1,4 @@
-import { ui } from '@/data/ui';
+import { chapter, ui } from '@/data/ui';
 import type { Locale } from '@/lib/i18n';
 import { BoardFill } from '@/components/demos/BoardFill';
 import { Reveal } from '@/components/ui/Reveal';
@@ -19,7 +19,7 @@ export function Board({ locale }: { locale: Locale }) {
           words={t}
           intro={
             <>
-              <Lines id="board-title" lines={t.title} />
+              <Lines id="board-title" lines={t.title} chapter={chapter(locale, 'board')} />
               <Reveal as="div">
                 <p className="fb-note">{t.note}</p>
               </Reveal>

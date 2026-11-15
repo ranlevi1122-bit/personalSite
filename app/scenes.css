@@ -47,7 +47,7 @@ html.is-smooth {
 }
 
 /* ========================================================================== */
-/*  The opening: a curved wall of real screens                                */
+/*  The opening: two columns of words at the mouth of a tunnel of screens     */
 /* ========================================================================== */
 
 .hero {
@@ -62,20 +62,38 @@ html.js .hero.is-live > .scene-stage {
   min-height: 0;
 }
 
+/*
+ * The words: two columns on one baseline. Who and the headline lead; the
+ * pitch and the actions answer from the other side. On a narrow screen they
+ * stack. Only the words and buttons take a touch; around them, and once they
+ * fade, it reaches the tunnel.
+ */
 .hero__copy {
   position: relative;
   z-index: 2;
-  padding-top: clamp(28px, 5.5vh, 72px);
-  text-align: center;
-  /* Only the words and buttons take a touch; around them, and once they fade, it reaches the ring. */
+  padding-top: clamp(28px, 6vh, 80px);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+  row-gap: 28px;
+  align-items: end;
   pointer-events: none;
 }
-.hero__copy > * {
+.hero__copy :where(h1, p, .hero__actions) {
   pointer-events: auto;
+}
+.hero__lead {
+  grid-column: 1 / span 7;
+  min-width: 0;
+}
+.hero__side {
+  grid-column: 8 / span 5;
+  min-width: 0;
+  padding-bottom: 0.5rem;
 }
 
 .hero__title {
-  margin: 0 auto;
+  margin: 0;
   font-size: var(--step-display);
 }
 .hero__title .lm > span {
@@ -86,8 +104,8 @@ html.js .hero.is-live > .scene-stage {
 }
 
 .hero__sentence {
-  margin: 24px auto 0;
-  max-width: 46ch;
+  margin: 0;
+  max-width: 40ch;
   font-size: var(--step-lead);
   line-height: 1.45;
   animation: fade-up 0.9s var(--ease-out) both;
@@ -98,9 +116,8 @@ html.js .hero.is-live > .scene-stage {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
   gap: 14px 28px;
-  margin-top: 30px;
+  margin-top: 28px;
   animation: fade-up 0.9s var(--ease-out) both;
   animation-delay: 0.42s;
 }
@@ -109,16 +126,27 @@ html.js .hero.is-live > .scene-stage {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  margin: 26px 0 0;
+  margin: 0 0 22px;
   font-size: var(--step-small);
   color: var(--muted-c);
   animation: fade-up 0.9s var(--ease-out) both;
-  animation-delay: 0.54s;
+  animation-delay: 0.1s;
 }
 .hero__byline b {
   font-weight: 500;
   color: var(--fg-c);
 }
+
+@media (max-width: 900px) {
+  .hero__lead,
+  .hero__side {
+    grid-column: 1 / -1;
+  }
+  .hero__side {
+    padding-bottom: 0;
+  }
+}
+
 .hero__photo {
   position: relative;
   flex: none;
@@ -144,7 +172,7 @@ html.js .hero.is-live > .scene-stage {
   --persp: 900px;
   --gap: 560px;
   --tile-w: min(44vw, 620px);
-  --mouth: 79;
+  --mouth: 70;
   --back: 0.8;
   --ox: 0%;
   --oy: 50%;
@@ -298,6 +326,21 @@ html.js .work.is-live > .scene-stage > .work__inner {
 }
 .work.is-live .work__head .sec-head__note {
   display: none;
+}
+/* While the window runs, the heading steps back to one line, so the case under it keeps its room. */
+.work.is-live .work__head h2 {
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  line-height: 1.2;
+}
+.work.is-live .work__head .lm {
+  display: inline-block;
+  vertical-align: bottom;
+}
+.work.is-live .work__head .lm + .lm {
+  margin-inline-start: 0.28em;
+}
+.work.is-live .work__head .chapter {
+  margin-bottom: 10px;
 }
 .work.is-live .work__ledger {
   display: block;
@@ -466,30 +509,27 @@ html.js .process-scene.is-live {
   margin: 24px 0 0;
   max-width: 44ch;
 }
+/* The three figures stand in a row: the model's clock first, then the hours it is measured against. */
 .fb-facts {
-  margin: 32px 0 28px;
-  display: grid;
-  gap: 8px;
-}
-.fb-facts div {
+  margin: 36px 0 28px;
   display: flex;
-  align-items: baseline;
-  gap: 18px;
-  padding: 14px 18px;
-  background: var(--surface-c);
+  flex-wrap: wrap;
+  gap: 24px 40px;
 }
 .fb-facts dt {
-  flex: none;
-  min-width: 5.4em;
   font-family: var(--font-display), Georgia, serif;
-  font-size: 1.9rem;
+  font-size: clamp(2rem, 1.5rem + 1.2vw, 2.75rem);
   line-height: 1;
+  white-space: nowrap;
 }
 .fb-facts div:first-child dt {
+  min-width: 2.4em;
   color: var(--accent-c);
 }
 .fb-facts dd {
-  margin: 0;
+  margin: 10px 0 0;
+  max-width: 17ch;
+  font-size: var(--step-small);
   color: var(--muted-c);
 }
 .fb-side {

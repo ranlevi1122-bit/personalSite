@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { getContent } from '@/data/content';
-import { ui } from '@/data/ui';
+import { chapter, ui } from '@/data/ui';
 import type { Locale } from '@/lib/i18n';
 import { Reveal, Stagger, StaggerItem } from '@/components/ui/Reveal';
 import { Lines } from '@/components/ui/Lines';
@@ -18,7 +18,7 @@ export function About({ locale }: { locale: Locale }) {
         </Reveal>
 
         <div className="about__text">
-          <Lines id="about-title" lines={t.title} />
+          <Lines id="about-title" lines={[person.name]} chapter={chapter(locale, 'about')} />
           <Reveal>
             {t.bio.map((p) => (
               <p key={p} className="about__bio">
